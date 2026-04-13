@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Selling Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-border {
+            border: 1px solid transparent;
+            background: linear-gradient(#111827, #111827) padding-box,
+                        linear-gradient(135deg, #8b5cf6, #3b82f6) border-box;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .sidebar-link.active {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2));
+            border-left: 3px solid #8b5cf6;
+        }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100 min-h-screen flex font-sans">
+    <!-- Sidebar -->
+    <aside class="w-64 border-r border-gray-800 p-6 hidden md:flex flex-col bg-gray-900">
+        <div class="mb-10">
+            <h1 class="text-xl font-bold gradient-text">Social Selling</h1>
+            <p class="text-xs text-gray-500">Pipeline Instagram DM</p>
+        </div>
+        <nav class="space-y-2 flex-1">
+            <a href="#" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-xl">
+                <i class="fas fa-chart-line w-5"></i>
+                <span class="font-medium">Dashboard</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800">
+                <i class="fas fa-users w-5"></i>
+                <span class="font-medium">Prospects</span>
+                <span class="ml-auto text-xs bg-gray-800 px-2 py-1 rounded" id="prospects-count">2</span>
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800">
+                <i class="fas fa-bolt w-5"></i>
+                <span class="font-medium">Activity</span>
+            </a>
+        </nav>
+        <div class="pt-6 border-t border-gray-800">
+            <div class="p-4 bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl">
+                <p class="text-sm text-gray-400">Pipeline ativo</p>
+                <p class="text-lg font-bold mt-1">30-50 DMs/dia</p>
+                <div class="mt-2 h-2 bg-gray-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-purple-500 to-blue-500 w-2/3"></div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 overflow-auto">
+        <header class="border-b border-gray-800 p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold">Dashboard</h2>
+                    <p class="text-gray-500 text-sm">Monitoramento em tempo real do pipeline</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="text-right">
+                        <p class="text-sm text-gray-500">Meta diária</p>
+                        <p class="text-lg font-bold">50 prospects</p>
+                    </div>
+                    <button class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium rounded-xl hover:opacity-90">
+                        Nova campanha
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="p-6">
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="gradient-border rounded-2xl p-6">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm text-gray-400 mb-2">Total Prospects</p>
+                            <p class="text-3xl font-bold" id="total-prospects">2</p>
+                            <div class="flex items-center gap-1 mt-2">
+                                <i class="fas fa-arrow-up text-emerald-500"></i>
+                                <span class="text-sm font-medium text-emerald-500">+2 hoje</span>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800">
+                            <i class="fas fa-users text-purple-400 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gradient-border rounded-2xl p-6">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm text-gray-400 mb-2">DMs Enviadas</p>
+                            <p class="text-3xl font-bold" id="dms-sent">0</p>
+                            <div class="flex items-center gap-1 mt-2">
+                                <i class="fas fa-arrow-down text-rose-500"></i>
+                                <span class="text-sm font-medium text-rose-500">0 esta semana</span>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800">
+                            <i class="fas fa-comment text-blue-400 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gradient-border rounded-2xl p-6">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm text-gray-400 mb-2">Taxa de Resposta</p>
+                            <p class="text-3xl font-bold" id="reply-rate">0%</p>
+                            <div class="flex items-center gap-1 mt-2">
+                                <i class="fas fa-arrow-down text-rose-500"></i>
+                                <span class="text-sm font-medium text-rose-500">0% esta semana</span>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800">
+                            <i class="fas fa-bullseye text-emerald-400 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="gradient-border rounded-2xl p-6">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm text-gray-400 mb-2">Performance</p>
+                            <p class="text-3xl font-bold">Iniciando</p>
+                            <div class="flex items-center gap-1 mt-2">
+                                <i class="fas fa-arrow-up text-emerald-500"></i>
+                                <span class="text-sm font-medium text-emerald-500">Pipeline ativo amanhã</span>
+                            </div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800">
+                            <i class="fas fa-chart-line text-purple-400 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                <div class="lg:col-span-2 gradient-border rounded-2xl p-6">
+                    <h3 class="text-lg font-bold mb-6">Atividade dos últimos 7 dias</h3>
+                    <div class="h-80">
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="gradient-border rounded-2xl p-6">
+                    <h3 class="text-lg font-bold mb-6">Funil de Conversão</h3>
+                    <div class="space-y-6" id="funnel">
+                        <!-- Funnel will be populated by JS -->
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-gray-800">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-400">Taxa de conversão total</p>
+                                <p class="text-2xl font-bold" id="conversion-rate">0%</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm text-gray-400">Custo por lead</p>
+                                <p class="text-2xl font-bold">R$ 0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="gradient-border rounded-2xl p-6">
+                <h3 class="text-lg font-bold mb-6">Atividade Recente</h3>
+                <div class="space-y-4" id="recent-activity">
+                    <!-- Activity will be populated by JS -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Fetch data from API
+        async function loadDashboard() {
+            try {
+                const response = await fetch('https://social-selling-dashboard.vercel.app/api/stats');
+                const stats = await response.json();
+                
+                // Update stats
+                document.getElementById('total-prospects').textContent = stats.total;
+                document.getElementById('prospects-count').textContent = stats.total;
+                document.getElementById('dms-sent').textContent = stats.week.contacted;
+                document.getElementById('reply-rate').textContent = stats.replyRate + '%';
+                
+                // Update funnel
+                const funnel = stats.funnel;
+                const funnelMax = Math.max(funnel.qualified, funnel.contacted, funnel.replied, funnel.converted, funnel.failed);
+                const funnelHtml = `
+                    <div class="flex items-center gap-4">
+                        <div class="w-32"><p class="text-sm text-gray-400">Qualified</p><p class="text-lg font-bold">${funnel.qualified}</p></div>
+                        <div class="flex-1"><div class="h-3 bg-gray-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full" style="width: ${funnelMax > 0 ? (funnel.qualified/funnelMax)*100 : 0}%"></div></div></div>
+                        <div class="w-16 text-right"><p class="text-sm font-medium">${funnelMax > 0 ? Math.round((funnel.qualified/funnelMax)*100) : 0}%</p></div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-32"><p class="text-sm text-gray-400">Contacted</p><p class="text-lg font-bold">${funnel.contacted}</p></div>
+                        <div class="flex-1"><div class="h-3 bg-gray-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full" style="width: ${funnelMax > 0 ? (funnel.contacted/funnelMax)*100 : 0}%"></div></div></div>
+                        <div class="w-16 text-right"><p class="text-sm font-medium">${funnelMax > 0 ? Math.round((funnel.contacted/funnelMax)*100) : 0}%</p></div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-32"><p class="text-sm text-gray-400">Replied</p><p class="text-lg font-bold">${funnel.replied}</p></div>
+                        <div class="flex-1"><div class="h-3 bg-gray-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full" style="width: ${funnelMax > 0 ? (funnel.replied/funnelMax)*100 : 0}%"></div></div></div>
+                        <div class="w-16 text-right"><p class="text-sm font-medium">${funnelMax > 0 ? Math.round((funnel.replied/funnelMax)*100) : 0}%</p></div>
+                    </div>
+                `;
+                document.getElementById('funnel').innerHTML = funnelHtml;
+                
+                // Update conversion rate
+                const conversionRate = funnel.qualified > 0 ? Math.round((funnel.converted / funnel.qualified) * 100) : 0;
+                document.getElementById('conversion-rate').textContent = conversionRate + '%';
+                
+                // Update recent activity
+                const activityHtml = `
+                    <div class="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+                                <i class="fas fa-users text-white"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">Pipeline iniciado</p>
+                                <p class="text-sm text-gray-500">Dashboard configurado e pronto para operar</p>
+                            </div>
+                        </div>
+                        <span class="text-sm text-gray-500">Hoje</span>
+                    </div>
+                    <div class="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-emerald-600 flex items-center justify-center">
+                                <i class="fas fa-comment text-white"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">${stats.total} prospects qualificados</p>
+                                <p class="text-sm text-gray-500">Adicionados ao banco de dados</p>
+                            </div>
+                        </div>
+                        <span class="text-sm text-gray-500">Hoje</span>
+                    </div>
+                    <div class="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-600 to-green-600 flex items-center justify-center">
+                                <i class="fas fa-bullseye text-white"></i>
+                            </div>
+                            <div>
+                                <p class="font-medium">Pipeline agendado</p>
+                                <p class="text-sm text-gray-500">SDR inicia amanhã às 5h, Seller às 9h, 14h, 19h</p>
+                            </div>
+                        </div>
+                        <span class="text-sm text-gray-500">Amanhã</span>
+                    </div>
+                `;
+                document.getElementById('recent-activity').innerHTML = activityHtml;
+                
+                // Create chart
+                const chartData = stats.last7Days.length > 0 
+                    ? stats.last7Days.map(d => ({
+                        date: new Date(d.date).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }),
+                        prospects: d.prospectsQualified,
+                        dms: d.dmsSent,
+                        replies: d.repliesReceived
+                    }))
+                    : Array.from({ length: 7 }, (_, i) => {
+                        const date = new Date();
+                        date.setDate(date.getDate() - (6 - i));
+                        return {
+                            date: date.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }),
+                            prospects: 0,
+                            dms: 0,
+                            replies: 0
+                        };
+                    });
+                
+                const ctx = document.getElementById('activityChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: chartData.map(d => d.date),
+                        datasets: [
+                            {
+                                label: 'Prospects',
+                                data: chartData.map(d => d.prospects),
+                                borderColor: '#8b5cf6',
+                                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            },
+                            {
+                                label: 'DMs',
+                                data: chartData.map(d => d.dms),
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            },
+                            {
+                                label: 'Respostas',
+                                data: chartData.map(d => d.replies),
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: { color: '#9ca3af' }
+                            }
+                        },
+                        scales: {
+                            x: { grid: { color: '#374                            </div>
+                        },
+                        y: { 
+                            grid: { color: '#374151' },
+                            ticks: { color: '#9ca3af' }
+                        }
+                    }
+                }
+            });
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                document.getElementById('recent-activity').innerHTML = `
+                    <div class="p-4 bg-rose-900/20 border border-rose-800 rounded-xl">
+                        <p class="text-rose-400"><i class="fas fa-exclamation-triangle mr-2"></i>Erro ao carregar dados da API</p>
+                        <p class="text-sm text-gray-500 mt-1">A API pode estar temporariamente indisponível</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', loadDashboard);
+        
+        // Auto-refresh every 30 seconds
+        setInterval(loadDashboard, 30000);
+    </script>
+</body>
+</html>
