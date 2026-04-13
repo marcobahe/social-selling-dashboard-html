@@ -38,8 +38,15 @@
         <header class="border-b border-gray-800 p-6">
             <div class="flex items-center justify-between">
                 <div><h2 class="text-2xl font-bold" id="page-title">Dashboard</h2><p class="text-gray-500 text-sm" id="page-subtitle">Monitoramento em tempo real do pipeline</p></div>
-                <div class="flex items-center gap-4">
-                    <div class="text-right"><p class="text-sm text-gray-500">Meta diaria</p><p class="text-lg font-bold">50 prospects</p></div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2 bg-gray-900 rounded-xl px-4 py-2 border border-gray-800">
+                        <i class="fas fa-calendar text-gray-500"></i>
+                        <input type="date" id="date-from" class="bg-transparent text-sm text-gray-300 outline-none border-none" onchange="applyDateFilter()">
+                        <span class="text-gray-600">ate</span>
+                        <input type="date" id="date-to" class="bg-transparent text-sm text-gray-300 outline-none border-none" onchange="applyDateFilter()">
+                        <button onclick="resetDates()" class="text-xs text-gray-500 hover:text-white ml-1">Limpar</button>
+                    </div>
+                    <div class="text-right"><p class="text-sm text-gray-500">Meta</p><p class="text-lg font-bold">50/dia</p></div>
                     <button onclick="showPage('campaign')" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium rounded-xl hover:opacity-90">Nova campanha</button>
                 </div>
             </div>
@@ -151,13 +158,64 @@
         chartInstance=new Chart(document.getElementById('activityChart').getContext('2d'),{type:'bar',data:{labels:days.map(function(d){return d.l}),datasets:[{label:'Qualificados',data:days.map(function(d){return d.q}),backgroundColor:'#8b5cf6',borderRadius:6},{label:'Contactados',data:days.map(function(d){return d.c}),backgroundColor:'#3b82f6',borderRadius:6},{label:'Falhados',data:days.map(function(d){return d.f}),backgroundColor:'#ef4444',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9ca3af'}}},scales:{x:{grid:{color:'#1f2937'},ticks:{color:'#9ca3af'}},y:{grid:{color:'#1f2937'},ticks:{color:'#9ca3af'}}}}})
     }
 
+    function getFilteredProspects(){
+        var from=document.getElementById('date-from').value;
+        var to=document.getElementById('date-to').value;
+        if(!from&&!to)return allProspects;
+        return allProspects.filter(function(p){
+            if(!p.qualified_at)return false;
+            var d=p.qualified_at.split('T')[0];
+            if(from&&d<from)return false;
+            if(to&&d>to)return false;
+            return true
+        })
+    }
+
+    function applyDateFilter(){
+        var fp=getFilteredProspects();
+        var st=computeStats(fp);
+        updateStats(st);renderFunnel(st);renderChartFiltered(fp);renderRecentFiltered(fp);renderProspects('all');renderTimelineFiltered(fp)
+    }
+
+    function resetDates(){
+        document.getElementById('date-from').value='';
+        document.getElementById('date-to').value='';
+        applyDateFilter()
+    }
+
+    function computeStats(fp){
+        var funnel={qualified:0,contacted:0,replied:0,converted:0,failed:0};
+        fp.forEach(function(p){if(funnel[p.status]!==undefined)funnel[p.status]++});
+        var now=new Date();var today=now.toISOString().split('T')[0];
+        var ws=new Date(now);ws.setDate(ws.getDate()-ws.getDay());var weekStart=ws.toISOString().split('T')[0];
+        var todayQ=fp.filter(function(p){return p.qualified_at&&p.qualified_at.startsWith(today)}).length;
+        var weekQ=fp.filter(function(p){return p.qualified_at&&p.qualified_at.split('T')[0]>=weekStart}).length;
+        var contacted=funnel.contacted+funnel.replied+funnel.converted;
+        return{total:fp.length,today:{qualified:todayQ},week:{qualified:weekQ},funnel:funnel,replyRate:contacted>0?((funnel.replied+funnel.converted)/contacted*100).toFixed(1):'0'}
+    }
+
+    function renderChartFiltered(fp){
+        var from=document.getElementById('date-from').value;var to=document.getElementById('date-to').value;
+        var startDate=from?new Date(from):new Date();if(!from)startDate.setDate(startDate.getDate()-6);
+        var endDate=to?new Date(to):new Date();
+        var days=[];var d=new Date(startDate);
+        while(d<=endDate){var k=d.toISOString().split('T')[0];var dp=fp.filter(function(p){return p.qualified_at&&p.qualified_at.startsWith(k)});days.push({l:d.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}),q:dp.filter(function(p){return p.status==='qualified'}).length,c:dp.filter(function(p){return p.status==='contacted'}).length,f:dp.filter(function(p){return p.status==='failed'}).length});d.setDate(d.getDate()+1)}
+        if(chartInstance)chartInstance.destroy();
+        chartInstance=new Chart(document.getElementById('activityChart').getContext('2d'),{type:'bar',data:{labels:days.map(function(d){return d.l}),datasets:[{label:'Qualificados',data:days.map(function(d){return d.q}),backgroundColor:'#8b5cf6',borderRadius:6},{label:'Contactados',data:days.map(function(d){return d.c}),backgroundColor:'#3b82f6',borderRadius:6},{label:'Falhados',data:days.map(function(d){return d.f}),backgroundColor:'#ef4444',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9ca3af'}}},scales:{x:{grid:{color:'#1f2937'},ticks:{color:'#9ca3af'}},y:{grid:{color:'#1f2937'},ticks:{color:'#9ca3af'}}}}})
+    }
+
+    function renderRecentFiltered(fp){var s=fp.slice().sort(function(a,b){return new Date(b.qualified_at)-new Date(a.qualified_at)});document.getElementById('recent-activity').innerHTML=s.slice(0,5).map(makeRow).join('')}
+
+    function renderTimelineFiltered(fp){var s=fp.slice().sort(function(a,b){return new Date(b.qualified_at)-new Date(a.qualified_at)});document.getElementById('activity-timeline').innerHTML=s.slice(0,20).map(makeRow).join('')}
+
     async function loadDashboard(){
         try{var sr=await fetch(API+'/api/stats');var pr=await fetch(API+'/api/prospects');var st=await sr.json();var pd=await pr.json();allProspects=pd.prospects||[];updateStats(st);renderFunnel(st);renderChart();renderRecent();renderProspects('all');renderTimeline()}
         catch(e){console.error('Load error:',e)}
     }
 
     async function refreshData(){
-        try{var sr=await fetch(API+'/api/stats');var pr=await fetch(API+'/api/prospects');var st=await sr.json();var pd=await pr.json();allProspects=pd.prospects||[];updateStats(st);renderFunnel(st);renderRecent();renderProspects('all');renderTimeline()}
+        try{var sr=await fetch(API+'/api/stats');var pr=await fetch(API+'/api/prospects');var st=await sr.json();var pd=await pr.json();allProspects=pd.prospects||[];
+        var fp=getFilteredProspects();if(fp.length!==allProspects.length){applyDateFilter()}else{updateStats(st);renderFunnel(st);renderRecent();renderProspects('all');renderTimeline()}}
         catch(e){console.error('Refresh error:',e)}
     }
 
