@@ -8,435 +8,161 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .gradient-border {
-            border: 1px solid transparent;
-            background: linear-gradient(#111827, #111827) padding-box,
-                        linear-gradient(135deg, #8b5cf6, #3b82f6) border-box;
-        }
-        .gradient-text {
-            background: linear-gradient(135deg, #8b5cf6, #3b82f6);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .sidebar-link.active {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2));
-            border-left: 3px solid #8b5cf6;
-        }
-        .stat-value { font-size: 2rem; font-weight: 700; }
-        .fade-in { animation: fadeIn 0.5s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .gradient-border { border:1px solid transparent; background:linear-gradient(#111827,#111827) padding-box,linear-gradient(135deg,#8b5cf6,#3b82f6) border-box; }
+        .gradient-text { background:linear-gradient(135deg,#8b5cf6,#3b82f6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .sidebar-link.active { background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(59,130,246,.2)); border-left:3px solid #8b5cf6; }
+        .fade-in { animation:fadeIn .5s ease-in; }
+        @keyframes fadeIn { from{opacity:0} to{opacity:1} }
     </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen flex font-sans">
-    <!-- Sidebar -->
     <aside class="w-64 border-r border-gray-800 p-6 hidden md:flex flex-col bg-gray-900 flex-shrink-0">
         <div class="mb-10">
             <h1 class="text-xl font-bold gradient-text">Social Selling</h1>
             <p class="text-xs text-gray-500">Pipeline Instagram DM</p>
         </div>
         <nav class="space-y-2 flex-1">
-            <a href="#" onclick="showPage('dashboard')" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-xl" id="nav-dashboard">
-                <i class="fas fa-chart-line w-5"></i>
-                <span class="font-medium">Dashboard</span>
-            </a>
-            <a href="#" onclick="showPage('prospects')" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800" id="nav-prospects">
-                <i class="fas fa-users w-5"></i>
-                <span class="font-medium">Prospects</span>
-                <span class="ml-auto text-xs bg-gray-800 px-2 py-1 rounded" id="prospects-count">41</span>
-            </a>
-            <a href="#" onclick="showPage('activity')" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800" id="nav-activity">
-                <i class="fas fa-bolt w-5"></i>
-                <span class="font-medium">Activity</span>
-            </a>
+            <a href="#" onclick="showPage('dashboard')" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-xl" id="nav-dashboard"><i class="fas fa-chart-line w-5"></i><span class="font-medium">Dashboard</span></a>
+            <a href="#" onclick="showPage('prospects')" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800" id="nav-prospects"><i class="fas fa-users w-5"></i><span class="font-medium">Prospects</span><span class="ml-auto text-xs bg-gray-800 px-2 py-1 rounded" id="prospects-count">...</span></a>
+            <a href="#" onclick="showPage('activity')" class="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-400 hover:bg-gray-800" id="nav-activity"><i class="fas fa-bolt w-5"></i><span class="font-medium">Activity</span></a>
         </nav>
         <div class="pt-6 border-t border-gray-800">
             <div class="p-4 bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl">
                 <p class="text-sm text-gray-400">Pipeline ativo</p>
                 <p class="text-lg font-bold mt-1">30-50 DMs/dia</p>
-                <div class="mt-2 h-2 bg-gray-700 rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-purple-500 to-blue-500" id="pipeline-bar" style="width: 68%"></div>
-                </div>
+                <div class="mt-2 h-2 bg-gray-700 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-purple-500 to-blue-500" style="width:68%"></div></div>
             </div>
         </div>
     </aside>
-
-    <!-- Main Content -->
     <main class="flex-1 overflow-auto">
         <header class="border-b border-gray-800 p-6">
             <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-2xl font-bold" id="page-title">Dashboard</h2>
-                    <p class="text-gray-500 text-sm" id="page-subtitle">Monitoramento em tempo real do pipeline</p>
-                </div>
+                <div><h2 class="text-2xl font-bold" id="page-title">Dashboard</h2><p class="text-gray-500 text-sm" id="page-subtitle">Monitoramento em tempo real do pipeline</p></div>
                 <div class="flex items-center gap-4">
-                    <div class="text-right">
-                        <p class="text-sm text-gray-500">Meta diaria</p>
-                        <p class="text-lg font-bold">50 prospects</p>
-                    </div>
-                    <button onclick="showPage('campaign')" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium rounded-xl hover:opacity-90">
-                        Nova campanha
-                    </button>
+                    <div class="text-right"><p class="text-sm text-gray-500">Meta diaria</p><p class="text-lg font-bold">50 prospects</p></div>
+                    <button onclick="showPage('campaign')" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium rounded-xl hover:opacity-90">Nova campanha</button>
                 </div>
             </div>
         </header>
-
         <div class="p-6">
-            <!-- Dashboard Page -->
+            <!-- Dashboard -->
             <div id="page-dashboard" class="space-y-8 fade-in">
-                <!-- Stats Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="gradient-border rounded-2xl p-6">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <p class="text-sm text-gray-400 mb-2">Total Prospects</p>
-                                <p class="text-3xl font-bold" id="total-prospects">...</p>
-                                <div class="flex items-center gap-1 mt-2">
-                                    <i class="fas fa-arrow-up text-emerald-500"></i>
-                                    <span class="text-sm font-medium text-emerald-500" id="today-qualified">0 hoje</span>
-                                </div>
-                            </div>
-                            <div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800">
-                                <i class="fas fa-users text-purple-400 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="gradient-border rounded-2xl p-6">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <p class="text-sm text-gray-400 mb-2">DMs Enviadas</p>
-                                <p class="text-3xl font-bold" id="dms-sent">...</p>
-                                <div class="flex items-center gap-1 mt-2">
-                                    <i class="fas fa-arrow-up text-emerald-500"></i>
-                                    <span class="text-sm font-medium text-emerald-500" id="week-qualified">0 esta semana</span>
-                                </div>
-                            </div>
-                            <div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800">
-                                <i class="fas fa-comment text-blue-400 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="gradient-border rounded-2xl p-6">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <p class="text-sm text-gray-400 mb-2">Taxa de Resposta</p>
-                                <p class="text-3xl font-bold" id="reply-rate">...</p>
-                                <div class="flex items-center gap-1 mt-2">
-                                    <i class="fas fa-clock text-yellow-500"></i>
-                                    <span class="text-sm font-medium text-yellow-500">Aguardando respostas</span>
-                                </div>
-                            </div>
-                            <div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800">
-                                <i class="fas fa-bullseye text-emerald-400 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="gradient-border rounded-2xl p-6">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <p class="text-sm text-gray-400 mb-2">Funil</p>
-                                <p class="text-3xl font-bold" id="funnel-status">...</p>
-                                <div class="flex items-center gap-1 mt-2">
-                                    <i class="fas fa-arrow-up text-emerald-500"></i>
-                                    <span class="text-sm font-medium text-emerald-500">Pipeline ativo</span>
-                                </div>
-                            </div>
-                            <div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800">
-                                <i class="fas fa-filter text-purple-400 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="gradient-border rounded-2xl p-6"><div class="flex items-start justify-between"><div><p class="text-sm text-gray-400 mb-2">Total Prospects</p><p class="text-3xl font-bold" id="total-prospects">...</p><div class="flex items-center gap-1 mt-2"><i class="fas fa-arrow-up text-emerald-500"></i><span class="text-sm font-medium text-emerald-500" id="today-qualified">0 hoje</span></div></div><div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800"><i class="fas fa-users text-purple-400 text-xl"></i></div></div></div>
+                    <div class="gradient-border rounded-2xl p-6"><div class="flex items-start justify-between"><div><p class="text-sm text-gray-400 mb-2">DMs Enviadas</p><p class="text-3xl font-bold" id="dms-sent">...</p><div class="flex items-center gap-1 mt-2"><i class="fas fa-arrow-up text-emerald-500"></i><span class="text-sm font-medium text-emerald-500" id="week-qualified">0 esta semana</span></div></div><div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800"><i class="fas fa-comment text-blue-400 text-xl"></i></div></div></div>
+                    <div class="gradient-border rounded-2xl p-6"><div class="flex items-start justify-between"><div><p class="text-sm text-gray-400 mb-2">Taxa de Resposta</p><p class="text-3xl font-bold" id="reply-rate">...</p><div class="flex items-center gap-1 mt-2"><i class="fas fa-clock text-yellow-500"></i><span class="text-sm font-medium text-yellow-500">Aguardando respostas</span></div></div><div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800"><i class="fas fa-bullseye text-emerald-400 text-xl"></i></div></div></div>
+                    <div class="gradient-border rounded-2xl p-6"><div class="flex items-start justify-between"><div><p class="text-sm text-gray-400 mb-2">Funil</p><p class="text-3xl font-bold" id="funnel-status">...</p><div class="flex items-center gap-1 mt-2"><i class="fas fa-arrow-up text-emerald-500"></i><span class="text-sm font-medium text-emerald-500">Pipeline ativo</span></div></div><div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800"><i class="fas fa-filter text-purple-400 text-xl"></i></div></div></div>
                 </div>
-
-                <!-- Charts and Funnel -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 gradient-border rounded-2xl p-6">
-                        <h3 class="text-lg font-bold mb-6">Atividade dos ultimos 7 dias</h3>
-                        <div style="height:320px">
-                            <canvas id="activityChart"></canvas>
-                        </div>
-                    </div>
+                    <div class="lg:col-span-2 gradient-border rounded-2xl p-6"><h3 class="text-lg font-bold mb-6">Atividade dos ultimos 7 dias</h3><div style="height:320px"><canvas id="activityChart"></canvas></div></div>
                     <div class="gradient-border rounded-2xl p-6">
                         <h3 class="text-lg font-bold mb-6">Funil de Conversao</h3>
                         <div class="space-y-5" id="funnel-container"></div>
-                        <div class="mt-8 pt-6 border-t border-gray-800">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm text-gray-400">Conversao total</p>
-                                    <p class="text-2xl font-bold" id="conversion-rate">0%</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-sm text-gray-400">Contatados</p>
-                                    <p class="text-2xl font-bold" id="contacted-count">0</p>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="mt-8 pt-6 border-t border-gray-800"><div class="flex items-center justify-between"><div><p class="text-sm text-gray-400">Conversao total</p><p class="text-2xl font-bold" id="conversion-rate">0%</p></div><div class="text-right"><p class="text-sm text-gray-400">Contatados</p><p class="text-2xl font-bold" id="contacted-count">0</p></div></div></div>
                     </div>
                 </div>
-
-                <!-- Recent Activity -->
-                <div class="gradient-border rounded-2xl p-6">
-                    <h3 class="text-lg font-bold mb-6">Atividade Recente</h3>
-                    <div class="space-y-4" id="recent-activity"></div>
-                </div>
+                <div class="gradient-border rounded-2xl p-6"><h3 class="text-lg font-bold mb-6">Atividade Recente</h3><div class="space-y-4" id="recent-activity"></div></div>
             </div>
-
-            <!-- Prospects Page -->
+            <!-- Prospects -->
             <div id="page-prospects" class="hidden fade-in">
                 <div class="gradient-border rounded-2xl p-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-bold">Todos os Prospects</h3>
-                        <div class="flex gap-3">
-                            <button onclick="filterProspects('all')" class="px-4 py-2 rounded-lg bg-gray-800 text-sm" id="filter-all">Todos</button>
-                            <button onclick="filterProspects('contacted')" class="px-4 py-2 rounded-lg text-gray-400 text-sm" id="filter-contacted">Contactados</button>
-                            <button onclick="filterProspects('qualified')" class="px-4 py-2 rounded-lg text-gray-400 text-sm" id="filter-qualified">Qualificados</button>
-                            <button onclick="filterProspects('failed')" class="px-4 py-2 rounded-lg text-gray-400 text-sm" id="filter-failed">Falhados</button>
-                        </div>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="border-b border-gray-800">
-                                    <th class="text-left py-3 px-4 text-gray-400 font-medium">Usuario</th>
-                                    <th class="text-left py-3 px-4 text-gray-400 font-medium">Nome</th>
-                                    <th class="text-left py-3 px-4 text-gray-400 font-medium">Seguidores</th>
-                                    <th class="text-left py-3 px-4 text-gray-400 font-medium">Nicho</th>
-                                    <th class="text-left py-3 px-4 text-gray-400 font-medium">Status</th>
-                                    <th class="text-left py-3 px-4 text-gray-400 font-medium">Qualificado em</th>
-                                </tr>
-                            </thead>
-                            <tbody id="prospects-table"></tbody>
-                        </table>
-                    </div>
+                    <div class="flex items-center justify-between mb-6"><h3 class="text-lg font-bold">Todos os Prospects</h3><div class="flex gap-3"><button onclick="filterProspects('all')" class="px-4 py-2 rounded-lg bg-gray-800 text-sm" id="filter-all">Todos</button><button onclick="filterProspects('contacted')" class="px-4 py-2 rounded-lg text-gray-400 text-sm" id="filter-contacted">Contactados</button><button onclick="filterProspects('qualified')" class="px-4 py-2 rounded-lg text-gray-400 text-sm" id="filter-qualified">Qualificados</button><button onclick="filterProspects('failed')" class="px-4 py-2 rounded-lg text-gray-400 text-sm" id="filter-failed">Falhados</button></div></div>
+                    <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b border-gray-800"><th class="text-left py-3 px-4 text-gray-400 font-medium">Usuario</th><th class="text-left py-3 px-4 text-gray-400 font-medium">Nome</th><th class="text-left py-3 px-4 text-gray-400 font-medium">Seguidores</th><th class="text-left py-3 px-4 text-gray-400 font-medium">Nicho</th><th class="text-left py-3 px-4 text-gray-400 font-medium">Status</th><th class="text-left py-3 px-4 text-gray-400 font-medium">Data</th></tr></thead><tbody id="prospects-table"></tbody></table></div>
                 </div>
             </div>
-
-            <!-- Activity Page -->
-            <div id="page-activity" class="hidden fade-in">
-                <div class="gradient-border rounded-2xl p-6">
-                    <h3 class="text-lg font-bold mb-6">Timeline de Atividades</h3>
-                    <div class="space-y-4" id="activity-timeline"></div>
-                </div>
-            </div>
-
-            <!-- Campaign Page -->
+            <!-- Activity -->
+            <div id="page-activity" class="hidden fade-in"><div class="gradient-border rounded-2xl p-6"><h3 class="text-lg font-bold mb-6">Timeline de Atividades</h3><div class="space-y-4" id="activity-timeline"></div></div></div>
+            <!-- Campaign -->
             <div id="page-campaign" class="hidden fade-in">
                 <div class="gradient-border rounded-2xl p-8 max-w-2xl mx-auto">
-                    <h3 class="text-xl font-bold mb-2">Nova Campanha</h3>
-                    <p class="text-gray-500 mb-8">Configure uma nova rodada de prospeccao</p>
+                    <h3 class="text-xl font-bold mb-2">Nova Campanha</h3><p class="text-gray-500 mb-8">Configure uma nova rodada de prospeccao</p>
                     <div class="space-y-6">
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">Nome da campanha</label>
-                            <input type="text" placeholder="Ex: Lancadores Kiwify" class="w-full px-4 py-3 bg-gray-800 rounded-xl border border-gray-700 text-white focus:border-purple-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">Nichos alvo (separados por virgula)</label>
-                            <input type="text" placeholder="Ex: lancamentos, infoprodutos, marketing digital" class="w-full px-4 py-3 bg-gray-800 rounded-xl border border-gray-700 text-white focus:border-purple-500 outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-400 mb-2">Meta de DMs/dia</label>
-                            <input type="number" value="30" class="w-full px-4 py-3 bg-gray-800 rounded-xl border border-gray-700 text-white focus:border-purple-500 outline-none">
-                        </div>
-                        <button class="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl hover:opacity-90 text-lg">
-                            Iniciar Campanha
-                        </button>
+                        <div><label class="block text-sm text-gray-400 mb-2">Nome da campanha</label><input type="text" placeholder="Ex: Lancadores Kiwify" class="w-full px-4 py-3 bg-gray-800 rounded-xl border border-gray-700 text-white focus:border-purple-500 outline-none"></div>
+                        <div><label class="block text-sm text-gray-400 mb-2">Nichos alvo (separados por virgula)</label><input type="text" placeholder="Ex: lancamentos, infoprodutos" class="w-full px-4 py-3 bg-gray-800 rounded-xl border border-gray-700 text-white focus:border-purple-500 outline-none"></div>
+                        <div><label class="block text-sm text-gray-400 mb-2">Meta de DMs/dia</label><input type="number" value="30" class="w-full px-4 py-3 bg-gray-800 rounded-xl border border-gray-700 text-white focus:border-purple-500 outline-none"></div>
+                        <button class="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl hover:opacity-90 text-lg">Iniciar Campanha</button>
                     </div>
                 </div>
             </div>
         </div>
     </main>
-
     <script>
-        const API = 'https://ss-api-two.vercel.app';
-        let allProspects = [];
+    var API='https://ss-api-two.vercel.app';
+    var allProspects=[];
+    var chartInstance=null;
 
-        function showPage(page) {
-            document.querySelectorAll('[id^="page-"]').forEach(el => el.classList.add('hidden'));
-            document.getElementById('page-' + page).classList.remove('hidden');
-            document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
-            const navEl = document.getElementById('nav-' + page);
-            if (navEl) navEl.classList.add('active');
-            const titles = {
-                dashboard: ['Dashboard', 'Monitoramento em tempo real do pipeline'],
-                prospects: ['Prospects', 'Lista de todos os prospects qualificados'],
-                activity: ['Activity', 'Timeline de acoes do pipeline'],
-                campaign: ['Nova Campanha', 'Configure uma nova rodada de prospeccao']
-            };
-            if (titles[page]) {
-                document.getElementById('page-title').textContent = titles[page][0];
-                document.getElementById('page-subtitle').textContent = titles[page][1];
-            }
-        }
+    function showPage(p){
+        document.querySelectorAll('[id^="page-"]').forEach(function(e){e.classList.add('hidden')});
+        document.getElementById('page-'+p).classList.remove('hidden');
+        document.querySelectorAll('.sidebar-link').forEach(function(e){e.classList.remove('active')});
+        var n=document.getElementById('nav-'+p);if(n)n.classList.add('active');
+        var t={dashboard:['Dashboard','Monitoramento em tempo real do pipeline'],prospects:['Prospects','Lista de todos os prospects qualificados'],activity:['Activity','Timeline de acoes do pipeline'],campaign:['Nova Campanha','Configure uma nova rodada de prospeccao']};
+        if(t[p]){document.getElementById('page-title').textContent=t[p][0];document.getElementById('page-subtitle').textContent=t[p][1]}
+    }
 
-        function formatFollowers(n) {
-            if (!n) return '-';
-            const num = parseInt(n);
-            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-            return num.toString();
-        }
+    function fmtF(n){if(!n)return'-';var v=parseInt(n);if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return(v/1e3).toFixed(1)+'K';return v.toString()}
 
-        function statusBadge(status) {
-            const colors = {
-                qualified: 'bg-blue-500/20 text-blue-400',
-                contacted: 'bg-emerald-500/20 text-emerald-400',
-                replied: 'bg-green-500/20 text-green-400',
-                converted: 'bg-purple-500/20 text-purple-400',
-                failed: 'bg-rose-500/20 text-rose-400'
-            };
-            return '<span class="px-3 py-1 rounded-full text-xs font-medium ' + (colors[status] || 'bg-gray-500/20 text-gray-400') + '">' + status + '</span>';
-        }
+    function sBadge(s){var c={qualified:'bg-blue-500/20 text-blue-400',contacted:'bg-emerald-500/20 text-emerald-400',replied:'bg-green-500/20 text-green-400',converted:'bg-purple-500/20 text-purple-400',failed:'bg-rose-500/20 text-rose-400'};return'<span class="px-3 py-1 rounded-full text-xs font-medium '+(c[s]||'bg-gray-500/20 text-gray-400')+'">'+s+'</span>'}
 
-        function renderProspects(filter) {
-            let filtered = allProspects;
-            if (filter && filter !== 'all') {
-                filtered = allProspects.filter(p => p.status === filter);
-            }
-            const html = filtered.map(p => 
-                '<tr class="border-b border-gray-800/50 hover:bg-gray-900/50">' +
-                '<td class="py-3 px-4"><a href="https://instagram.com/' + p.username + '" target="_blank" class="text-purple-400 hover:underline">@' + p.username + '</a></td>' +
-                '<td class="py-3 px-4 text-gray-300">' + (p.full_name || '-') + '</td>' +
-                '<td class="py-3 px-4">' + formatFollowers(p.followers_count) + '</td>' +
-                '<td class="py-3 px-4 text-gray-400 text-xs">' + (p.niche || '-') + '</td>' +
-                '<td class="py-3 px-4">' + statusBadge(p.status) + '</td>' +
-                '<td class="py-3 px-4 text-gray-500 text-xs">' + (p.qualified_at ? new Date(p.qualified_at).toLocaleDateString('pt-BR') : '-') + '</td>' +
-                '</tr>'
-            ).join('');
-            document.getElementById('prospects-table').innerHTML = html;
-        }
+    function fmtDate(d){return d?new Date(d).toLocaleDateString('pt-BR'):'-'}
 
-        function filterProspects(filter) {
-            renderProspects(filter);
-            document.querySelectorAll('[id^="filter-"]').forEach(b => { b.className = 'px-4 py-2 rounded-lg text-gray-400 text-sm'; });
-            document.getElementById('filter-' + filter).className = 'px-4 py-2 rounded-lg bg-gray-800 text-sm';
-        }
+    function makeRow(p){
+        var ic=p.status==='contacted'?'fa-comment':p.status==='failed'?'fa-ban':'fa-user-plus';
+        var co=p.status==='contacted'?'from-blue-600 to-emerald-600':p.status==='failed'?'from-rose-600 to-red-600':'from-purple-600 to-blue-600';
+        var ac=p.status==='contacted'?'DM enviada':p.status==='failed'?'DM bloqueada':'Qualificado';
+        var hk=p.personalization_hook?' - '+p.personalization_hook:'';
+        return'<div class="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-gradient-to-br '+co+' flex items-center justify-center"><i class="fas '+ic+' text-white"></i></div><div><p class="font-medium">@'+p.username+'</p><p class="text-sm text-gray-500">'+ac+hk+'</p></div></div><span class="text-sm text-gray-500">'+fmtDate(p.qualified_at)+'</span></div>'
+    }
 
-        function renderActivity() {
-            const sorted = [...allProspects].sort((a, b) => new Date(b.qualified_at) - new Date(a.qualified_at));
-            const html = sorted.slice(0, 20).map(p => {
-                const icon = p.status === 'contacted' ? 'fa-comment' : p.status === 'failed' ? 'fa-times' : 'fa-user-plus';
-                const color = p.status === 'contacted' ? 'from-blue-600 to-emerald-600' : p.status === 'failed' ? 'from-rose-600 to-red-600' : 'from-purple-600 to-blue-600';
-                const action = p.status === 'contacted' ? 'DM enviada' : p.status === 'failed' ? 'DM bloqueada' : 'Qualificado';
-                const date = p.qualified_at ? new Date(p.qualified_at).toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }) : '-';
-                return '<div class="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl">' +
-                    '<div class="flex items-center gap-4">' +
-                    '<div class="w-10 h-10 rounded-full bg-gradient-to-br ' + color + ' flex items-center justify-center"><i class="fas ' + icon + ' text-white"></i></div>' +
-                    '<div><p class="font-medium">@' + p.username + ' - ' + action + '</p><p class="text-sm text-gray-500">' + (p.personalization_hook || p.niche || '') + '</p></div>' +
-                    '</div><span class="text-sm text-gray-500">' + date + '</span></div>';
-            }).join('');
-            document.getElementById('activity-timeline').innerHTML = html;
-        }
+    function renderRecent(){var s=allProspects.slice().sort(function(a,b){return new Date(b.qualified_at)-new Date(a.qualified_at)});document.getElementById('recent-activity').innerHTML=s.slice(0,5).map(makeRow).join('')}
 
-        async function loadDashboard() {
-            try {
-                const [statsRes, prospectsRes] = await Promise.all([
-                    fetch(API + '/api/stats'),
-                    fetch(API + '/api/prospects')
-                ]);
-                const stats = await statsRes.json();
-                const prospectsData = await prospectsRes.json();
-                allProspects = prospectsData.prospects || [];
+    function renderTimeline(){var s=allProspects.slice().sort(function(a,b){return new Date(b.qualified_at)-new Date(a.qualified_at)});document.getElementById('activity-timeline').innerHTML=s.slice(0,20).map(makeRow).join('')}
 
-                // Update stats
-                document.getElementById('total-prospects').textContent = stats.total;
-                document.getElementById('prospects-count').textContent = stats.total;
-                document.getElementById('today-qualified').textContent = stats.today.qualified + ' hoje';
-                document.getElementById('dms-sent').textContent = stats.funnel.contacted;
-                document.getElementById('week-qualified').textContent = stats.week.qualified + ' esta semana';
-                document.getElementById('reply-rate').textContent = stats.replyRate + '%';
-                document.getElementById('funnel-status').textContent = stats.total + ' total';
-                document.getElementById('contacted-count').textContent = stats.funnel.contacted;
+    function renderProspects(f){
+        var d=f&&f!=='all'?allProspects.filter(function(p){return p.status===f}):allProspects;
+        document.getElementById('prospects-table').innerHTML=d.map(function(p){
+            return'<tr class="border-b border-gray-800/50 hover:bg-gray-900/50"><td class="py-3 px-4"><a href="https://instagram.com/'+p.username+'" target="_blank" class="text-purple-400 hover:underline">@'+p.username+'</a></td><td class="py-3 px-4 text-gray-300">'+(p.full_name||'-')+'</td><td class="py-3 px-4">'+fmtF(p.followers_count)+'</td><td class="py-3 px-4 text-gray-400 text-xs">'+(p.niche||'-')+'</td><td class="py-3 px-4">'+sBadge(p.status)+'</td><td class="py-3 px-4 text-gray-500 text-xs">'+fmtDate(p.qualified_at)+'</td></tr>'
+        }).join('')
+    }
 
-                // Funnel
-                const funnel = stats.funnel;
-                const funnelMax = Math.max(funnel.qualified, funnel.contacted, funnel.replied, funnel.converted, funnel.failed, 1);
-                const steps = [
-                    { label: 'Qualified', value: funnel.qualified, color: 'from-purple-500 to-purple-600' },
-                    { label: 'Contacted', value: funnel.contacted, color: 'from-blue-500 to-blue-600' },
-                    { label: 'Replied', value: funnel.replied, color: 'from-emerald-500 to-emerald-600' },
-                    { label: 'Converted', value: funnel.converted, color: 'from-green-500 to-green-600' },
-                    { label: 'Failed', value: funnel.failed, color: 'from-rose-500 to-rose-600' }
-                ];
-                document.getElementById('funnel-container').innerHTML = steps.map(s => {
-                    const pct = Math.round((s.value / funnelMax) * 100);
-                    return '<div class="flex items-center gap-4"><div class="w-28"><p class="text-sm text-gray-400">' + s.label + '</p><p class="text-lg font-bold">' + s.value + '</p></div><div class="flex-1"><div class="h-3 bg-gray-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r ' + s.color + ' rounded-full" style="width:' + pct + '%"></div></div></div><div class="w-12 text-right"><p class="text-sm font-medium">' + pct + '%</p></div></div>';
-                }).join('');
+    function filterProspects(f){renderProspects(f);document.querySelectorAll('[id^="filter-"]').forEach(function(b){b.className='px-4 py-2 rounded-lg text-gray-400 text-sm'});document.getElementById('filter-'+f).className='px-4 py-2 rounded-lg bg-gray-800 text-sm'}
 
-                // Chart
-                const days = [];
-                for (let i = 6; i >= 0; i--) {
-                    const d = new Date();
-                    d.setDate(d.getDate() - i);
-                    const key = d.toISOString().split('T')[0];
-                    const dayProspects = allProspects.filter(p => p.qualified_at && p.qualified_at.startsWith(key));
-                    days.push({
-                        label: d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }),
-                        qualified: dayProspects.filter(p => p.status === 'qualified').length,
-                        contacted: dayProspects.filter(p => p.status === 'contacted').length,
-                        failed: dayProspects.filter(p => p.status === 'failed').length
-                    });
-                }
+    function updateStats(st){
+        document.getElementById('total-prospects').textContent=st.total;
+        document.getElementById('prospects-count').textContent=st.total;
+        document.getElementById('today-qualified').textContent=st.today.qualified+' hoje';
+        document.getElementById('dms-sent').textContent=st.funnel.contacted;
+        document.getElementById('week-qualified').textContent=st.week.qualified+' esta semana';
+        document.getElementById('reply-rate').textContent=st.replyRate+'%';
+        document.getElementById('funnel-status').textContent=st.total+' total';
+        document.getElementById('contacted-count').textContent=st.funnel.contacted
+    }
 
-                const ctx = document.getElementById('activityChart').getContext('2d');
-                if (chartInstance) chartInstance.destroy(); chartInstance = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: days.map(d => d.label),
-                        datasets: [
-                            { label: 'Qualificados', data: days.map(d => d.qualified), backgroundColor: '#8b5cf6', borderRadius: 6 },
-                            { label: 'Contactados', data: days.map(d => d.contacted), backgroundColor: '#3b82f6', borderRadius: 6 },
-                            { label: 'Falhados', data: days.map(d => d.failed), backgroundColor: '#ef4444', borderRadius: 6 }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: { legend: { labels: { color: '#9ca3af' } } },
-                        scales: {
-                            x: { grid: { color: '#1f2937' }, ticks: { color: '#9ca3af' } },
-                            y: { grid: { color: '#1f2937' }, ticks: { color: '#9ca3af' } }
-                        }
-                    }
-                });
+    function renderFunnel(st){
+        var f=st.funnel,mx=Math.max(f.qualified,f.contacted,f.replied,f.converted,f.failed,1);
+        var steps=[{l:'Qualified',v:f.qualified,c:'from-purple-500 to-purple-600'},{l:'Contacted',v:f.contacted,c:'from-blue-500 to-blue-600'},{l:'Replied',v:f.replied,c:'from-emerald-500 to-emerald-600'},{l:'Converted',v:f.converted,c:'from-green-500 to-green-600'},{l:'Failed',v:f.failed,c:'from-rose-500 to-rose-600'}];
+        document.getElementById('funnel-container').innerHTML=steps.map(function(s){var pct=Math.round(s.v/mx*100);return'<div class="flex items-center gap-4"><div class="w-28"><p class="text-sm text-gray-400">'+s.l+'</p><p class="text-lg font-bold">'+s.v+'</p></div><div class="flex-1"><div class="h-3 bg-gray-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r '+s.c+' rounded-full" style="width:'+pct+'%"></div></div></div><div class="w-12 text-right"><p class="text-sm font-medium">'+pct+'%</p></div></div>'}).join('')
+    }
 
-                // Recent activity
-                const recent = [...allProspects].sort((a, b) => new Date(b.qualified_at) - new Date(a.qualified_at)).slice(0, 5);
-                document.getElementById('recent-activity').innerHTML = recent.map(p => {
-                    const icon = p.status === 'contacted' ? 'fa-comment' : p.status === 'failed' ? 'fa-ban' : 'fa-user-plus';
-                    const color = p.status === 'contacted' ? 'from-blue-600 to-emerald-600' : p.status === 'failed' ? 'from-rose-600 to-red-600' : 'from-purple-600 to-blue-600';
-                    const action = p.status === 'contacted' ? 'DM enviada' : p.status === 'failed' ? 'DM bloqueada' : 'Qualificado';
-                    return '<div class="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-gradient-to-br ' + color + ' flex items-center justify-center"><i class="fas ' + icon + ' text-white"></i></div><div><p class="font-medium">@' + p.username + '</p><p class="text-sm text-gray-500">' + action + (p.personalization_hook ? ' - ' + p.personalization_hook : '') + '</p></div></div><span class="text-sm text-gray-500">' + new Date(p.qualified_at).toLocaleDateString('pt-BR') + '</span></div>';
-                }).join('');
+    function renderChart(){
+        var days=[];
+        for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var k=d.toISOString().split('T')[0];var dp=allProspects.filter(function(p){return p.qualified_at&&p.qualified_at.startsWith(k)});days.push({l:d.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}),q:dp.filter(function(p){return p.status==='qualified'}).length,c:dp.filter(function(p){return p.status==='contacted'}).length,f:dp.filter(function(p){return p.status==='failed'}).length})}
+        if(chartInstance)chartInstance.destroy();
+        chartInstance=new Chart(document.getElementById('activityChart').getContext('2d'),{type:'bar',data:{labels:days.map(function(d){return d.l}),datasets:[{label:'Qualificados',data:days.map(function(d){return d.q}),backgroundColor:'#8b5cf6',borderRadius:6},{label:'Contactados',data:days.map(function(d){return d.c}),backgroundColor:'#3b82f6',borderRadius:6},{label:'Falhados',data:days.map(function(d){return d.f}),backgroundColor:'#ef4444',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9ca3af'}}},scales:{x:{grid:{color:'#1f2937'},ticks:{color:'#9ca3af'}},y:{grid:{color:'#1f2937'},ticks:{color:'#9ca3af'}}}}})
+    }
 
-                // Render other pages
-                renderProspects('all');
-                renderActivity();
+    async function loadDashboard(){
+        try{var sr=await fetch(API+'/api/stats');var pr=await fetch(API+'/api/prospects');var st=await sr.json();var pd=await pr.json();allProspects=pd.prospects||[];updateStats(st);renderFunnel(st);renderChart();renderRecent();renderProspects('all');renderTimeline()}
+        catch(e){console.error('Load error:',e)}
+    }
 
-            } catch (error) {
-                console.error('Error loading dashboard:', error);
-                document.getElementById('recent-activity').innerHTML = '<div class="p-4 bg-rose-900/20 border border-rose-800 rounded-xl"><p class="text-rose-400">Erro ao carregar: ' + error.message + '</p></div>';
-            }
-        }
+    async function refreshData(){
+        try{var sr=await fetch(API+'/api/stats');var pr=await fetch(API+'/api/prospects');var st=await sr.json();var pd=await pr.json();allProspects=pd.prospects||[];updateStats(st);renderFunnel(st);renderRecent();renderProspects('all');renderTimeline()}
+        catch(e){console.error('Refresh error:',e)}
+    }
 
-        document.addEventListener('DOMContentLoaded', loadDashboard);
-let chartInstance = null;
-
-async function refreshData() {
-    try {
-        const [statsRes, prospectsRes] = await Promise.all([fetch(API + "/api/stats"), fetch(API + "/api/prospects")]);
-        const stats = await statsRes.json();
-        const prospectsData = await prospectsRes.json();
-        allProspects = prospectsData.prospects || [];
-        document.getElementById("total-prospects").textContent = stats.total;
-        document.getElementById("prospects-count").textContent = stats.total;
-        document.getElementById("dms-sent").textContent = stats.funnel.contacted;
-        document.getElementById("reply-rate").textContent = stats.replyRate + "%";
-        document.getElementById("funnel-status").textContent = stats.total + " total";
-        document.getElementById("contacted-count").textContent = stats.funnel.contacted;
-        renderProspects("all");
-        renderActivity();
-    } catch(e) { console.error("Refresh error:", e); }
-}
-        setInterval(refreshData, 30000);
+    document.addEventListener('DOMContentLoaded',loadDashboard);
+    setInterval(refreshData,30000);
     </script>
 </body>
 </html>
