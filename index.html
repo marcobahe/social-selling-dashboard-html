@@ -196,8 +196,9 @@
 
     function renderChartFiltered(fp){
         var from=document.getElementById('date-from').value;var to=document.getElementById('date-to').value;
-        var startDate=from?new Date(from):new Date();if(!from)startDate.setDate(startDate.getDate()-6);
-        var endDate=to?new Date(to):new Date();
+        function parseLocalDate(s){var p=s.split('-');return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]))}
+        var startDate=from?parseLocalDate(from):new Date();if(!from)startDate.setDate(startDate.getDate()-6);
+        var endDate=to?parseLocalDate(to):new Date();
         var days=[];var d=new Date(startDate);
         while(d<=endDate){var k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');var dp=fp.filter(function(p){return p.qualified_at&&p.qualified_at.startsWith(k)});days.push({l:d.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}),q:dp.filter(function(p){return p.status==='qualified'}).length,c:dp.filter(function(p){return p.status==='contacted'}).length,f:dp.filter(function(p){return p.status==='failed'}).length});d.setDate(d.getDate()+1)}
         if(chartInstance)chartInstance.destroy();
