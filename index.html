@@ -61,7 +61,7 @@
                     <div class="gradient-border rounded-2xl p-6"><div class="flex items-start justify-between"><div><p class="text-sm text-gray-400 mb-2">Funil</p><p class="text-3xl font-bold" id="funnel-status">...</p><div class="flex items-center gap-1 mt-2"><i class="fas fa-arrow-up text-emerald-500"></i><span class="text-sm font-medium text-emerald-500">Pipeline ativo</span></div></div><div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800"><i class="fas fa-filter text-purple-400 text-xl"></i></div></div></div>
                 </div>
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 gradient-border rounded-2xl p-6"><h3 class="text-lg font-bold mb-6">Atividade dos ultimos 7 dias</h3><div style="height:320px"><canvas id="activityChart"></canvas></div></div>
+                    <div class="lg:col-span-2 gradient-border rounded-2xl p-6"><h3 class="text-lg font-bold mb-6">Atividade do Periodo</h3><div style="height:320px"><canvas id="activityChart"></canvas></div></div>
                     <div class="gradient-border rounded-2xl p-6">
                         <h3 class="text-lg font-bold mb-6">Funil de Conversao</h3>
                         <div class="space-y-5" id="funnel-container"></div>
@@ -153,7 +153,7 @@
 
     function renderChart(){
         var days=[];
-        for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var k=d.toISOString().split('T')[0];var dp=allProspects.filter(function(p){return p.qualified_at&&p.qualified_at.startsWith(k)});days.push({l:d.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}),q:dp.filter(function(p){return p.status==='qualified'}).length,c:dp.filter(function(p){return p.status==='contacted'}).length,f:dp.filter(function(p){return p.status==='failed'}).length})}
+        for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');var dp=allProspects.filter(function(p){return p.qualified_at&&p.qualified_at.startsWith(k)});days.push({l:d.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}),q:dp.filter(function(p){return p.status==='qualified'}).length,c:dp.filter(function(p){return p.status==='contacted'}).length,f:dp.filter(function(p){return p.status==='failed'}).length})}
         if(chartInstance)chartInstance.destroy();
         chartInstance=new Chart(document.getElementById('activityChart').getContext('2d'),{type:'bar',data:{labels:days.map(function(d){return d.l}),datasets:[{label:'Qualificados',data:days.map(function(d){return d.q}),backgroundColor:'#8b5cf6',borderRadius:6},{label:'Contactados',data:days.map(function(d){return d.c}),backgroundColor:'#3b82f6',borderRadius:6},{label:'Falhados',data:days.map(function(d){return d.f}),backgroundColor:'#ef4444',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9ca3af'}}},scales:{x:{grid:{color:'#1f2937'},ticks:{color:'#9ca3af'}},y:{grid:{color:'#1f2937'},ticks:{color:'#9ca3af'}}}}})
     }
@@ -186,8 +186,8 @@
     function computeStats(fp){
         var funnel={qualified:0,contacted:0,replied:0,converted:0,failed:0};
         fp.forEach(function(p){if(funnel[p.status]!==undefined)funnel[p.status]++});
-        var now=new Date();var today=now.toISOString().split('T')[0];
-        var ws=new Date(now);ws.setDate(ws.getDate()-ws.getDay());var weekStart=ws.toISOString().split('T')[0];
+        var now=new Date();var today=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
+        var ws=new Date(now);ws.setDate(ws.getDate()-ws.getDay());var weekStart=ws.getFullYear()+'-'+String(ws.getMonth()+1).padStart(2,'0')+'-'+String(ws.getDate()).padStart(2,'0');
         var todayQ=fp.filter(function(p){return p.qualified_at&&p.qualified_at.startsWith(today)}).length;
         var weekQ=fp.filter(function(p){return p.qualified_at&&p.qualified_at.split('T')[0]>=weekStart}).length;
         var contacted=funnel.contacted+funnel.replied+funnel.converted;
@@ -199,7 +199,7 @@
         var startDate=from?new Date(from):new Date();if(!from)startDate.setDate(startDate.getDate()-6);
         var endDate=to?new Date(to):new Date();
         var days=[];var d=new Date(startDate);
-        while(d<=endDate){var k=d.toISOString().split('T')[0];var dp=fp.filter(function(p){return p.qualified_at&&p.qualified_at.startsWith(k)});days.push({l:d.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}),q:dp.filter(function(p){return p.status==='qualified'}).length,c:dp.filter(function(p){return p.status==='contacted'}).length,f:dp.filter(function(p){return p.status==='failed'}).length});d.setDate(d.getDate()+1)}
+        while(d<=endDate){var k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');var dp=fp.filter(function(p){return p.qualified_at&&p.qualified_at.startsWith(k)});days.push({l:d.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}),q:dp.filter(function(p){return p.status==='qualified'}).length,c:dp.filter(function(p){return p.status==='contacted'}).length,f:dp.filter(function(p){return p.status==='failed'}).length});d.setDate(d.getDate()+1)}
         if(chartInstance)chartInstance.destroy();
         chartInstance=new Chart(document.getElementById('activityChart').getContext('2d'),{type:'bar',data:{labels:days.map(function(d){return d.l}),datasets:[{label:'Qualificados',data:days.map(function(d){return d.q}),backgroundColor:'#8b5cf6',borderRadius:6},{label:'Contactados',data:days.map(function(d){return d.c}),backgroundColor:'#3b82f6',borderRadius:6},{label:'Falhados',data:days.map(function(d){return d.f}),backgroundColor:'#ef4444',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9ca3af'}}},scales:{x:{grid:{color:'#1f2937'},ticks:{color:'#9ca3af'}},y:{grid:{color:'#1f2937'},ticks:{color:'#9ca3af'}}}}})
     }
