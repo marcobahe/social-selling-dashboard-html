@@ -118,7 +118,7 @@
         var co=p.status==='contacted'?'from-blue-600 to-emerald-600':p.status==='failed'?'from-rose-600 to-red-600':'from-purple-600 to-blue-600';
         var ac=p.status==='contacted'?'DM enviada':p.status==='failed'?'DM bloqueada':'Qualificado';
         var hk=p.personalization_hook?' - '+p.personalization_hook:'';
-        return'<div class="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-gradient-to-br '+co+' flex items-center justify-center"><i class="fas '+ic+' text-white"></i></div><div><p class="font-medium">@'+p.username+'</p><p class="text-sm text-gray-500">'+ac+hk+'</p></div></div><span class="text-sm text-gray-500">'+fmtDate(p.qualified_at)+'</span></div>'
+        return'<div class="flex items-center justify-between p-4 bg-gray-900/50 rounded-xl"><div class="flex items-center gap-4"><div class="w-10 h-10 rounded-full bg-gradient-to-br '+co+' flex items-center justify-center"><i class="fas '+ic+' text-white"></i></div><div><a href="https://instagram.com/'+p.username+'" target="_blank" class="font-medium text-purple-400 hover:underline">@'+p.username+'</a><p class="text-sm text-gray-500">'+ac+hk+'</p></div></div><span class="text-sm text-gray-500">'+fmtDate(p.qualified_at)+'</span></div>'
     }
 
     function renderRecent(){var s=allProspects.slice().sort(function(a,b){return new Date(b.qualified_at)-new Date(a.qualified_at)});document.getElementById('recent-activity').innerHTML=s.slice(0,5).map(makeRow).join('')}
