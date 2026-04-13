@@ -377,7 +377,7 @@
                 }
 
                 const ctx = document.getElementById('activityChart').getContext('2d');
-                new Chart(ctx, {
+                if (chartInstance) chartInstance.destroy(); chartInstance = new Chart(ctx, {
                     type: 'bar',
                     data: {
                         labels: days.map(d => d.label),
@@ -418,7 +418,25 @@
         }
 
         document.addEventListener('DOMContentLoaded', loadDashboard);
-        setInterval(loadDashboard, 30000);
+let chartInstance = null;
+
+async function refreshData() {
+    try {
+        const [statsRes, prospectsRes] = await Promise.all([fetch(API + "/api/stats"), fetch(API + "/api/prospects")]);
+        const stats = await statsRes.json();
+        const prospectsData = await prospectsRes.json();
+        allProspects = prospectsData.prospects || [];
+        document.getElementById("total-prospects").textContent = stats.total;
+        document.getElementById("prospects-count").textContent = stats.total;
+        document.getElementById("dms-sent").textContent = stats.funnel.contacted;
+        document.getElementById("reply-rate").textContent = stats.replyRate + "%";
+        document.getElementById("funnel-status").textContent = stats.total + " total";
+        document.getElementById("contacted-count").textContent = stats.funnel.contacted;
+        renderProspects("all");
+        renderActivity();
+    } catch(e) { console.error("Refresh error:", e); }
+}
+        setInterval(refreshData, 30000);
     </script>
 </body>
 </html>
