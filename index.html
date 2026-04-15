@@ -3,23 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Social Selling Dashboard</title>
+    <title>Full Funnel - Social Selling Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        * { box-sizing: border-box; }
         .gradient-border { border:1px solid transparent; background:linear-gradient(#111827,#111827) padding-box,linear-gradient(135deg,#8b5cf6,#3b82f6) border-box; }
         .gradient-text { background:linear-gradient(135deg,#8b5cf6,#3b82f6); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
         .sidebar-link.active { background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(59,130,246,.2)); border-left:3px solid #8b5cf6; }
         .fade-in { animation:fadeIn .5s ease-in; }
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+        .search-input { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:12px center; padding-left:36px; }
+        table th { cursor:pointer; user-select:none; }
+        table th:hover { color:#8b5cf6; }
+        .detail-overlay { background:rgba(0,0,0,0.7); }
     </style>
 </head>
 <body class="bg-gray-950 text-gray-100 min-h-screen flex font-sans">
+    <!-- Sidebar -->
     <aside class="w-64 border-r border-gray-800 p-6 hidden md:flex flex-col bg-gray-900 flex-shrink-0">
         <div class="mb-10">
-            <h1 class="text-xl font-bold gradient-text">Social Selling</h1>
-            <p class="text-xs text-gray-500">Pipeline Instagram DM</p>
+            <h1 class="text-xl font-bold gradient-text"><i class="fas fa-bolt mr-2"></i>Full Funnel</h1>
+            <p class="text-xs text-gray-500">Social Selling Pipelin</p>
         </div>
         <nav class="space-y-2 flex-1">
             <a href="#" onclick="showPage('dashboard')" class="sidebar-link active flex items-center gap-3 px-4 py-3 rounded-xl" id="nav-dashboard"><i class="fas fa-chart-line w-5"></i><span class="font-medium">Dashboard</span></a>
@@ -28,16 +34,22 @@
         </nav>
         <div class="pt-6 border-t border-gray-800">
             <div class="p-4 bg-gradient-to-r from-gray-900 to-gray-800 rounded-xl">
-                <p class="text-sm text-gray-400">Pipeline ativo</p>
-                <p class="text-lg font-bold mt-1">30-50 DMs/dia</p>
-                <div class="mt-2 h-2 bg-gray-700 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r from-purple-500 to-blue-500" style="width:68%"></div></div>
+                <p class="text-sm text-gray-400">Meta diária</p>
+                <p class="text-lg font-bold mt-1" id="daily-goal-display">30-50 DMs</p>
+                <div class="mt-2 h-2 bg-gray-700 rounded-full overflow-hidden"><div id="daily-progress" class="h-full bg-gradient-to-r from-purple-500 to-blue-500" style="width:0%"></div></div>
+                <p class="text-xs text-gray-500 mt-1" id="daily-progress-text">0 enviados hoje</p>
             </div>
         </div>
     </aside>
+
+    <!-- Main -->
     <main class="flex-1 overflow-auto">
         <header class="border-b border-gray-800 p-6">
             <div class="flex items-center justify-between">
-                <div><h2 class="text-2xl font-bold" id="page-title">Dashboard</h2><p class="text-gray-500 text-sm" id="page-subtitle">Monitoramento em tempo real do pipeline</p></div>
+                <div>
+                    <h2 class="text-2xl font-bold" id="page-title">Dashboard</h2>
+                    <p class="text-gray-500 text-sm" id="page-subtitle">Monitoramento em tempo real do pipeline</p>
+                </div>
                 <div class="flex items-center gap-3">
                     <div class="flex items-center gap-2 bg-gray-900 rounded-xl px-4 py-2 border border-gray-800">
                         <i class="fas fa-calendar text-gray-500"></i>
@@ -46,200 +58,653 @@
                         <input type="date" id="date-to" class="bg-transparent text-sm text-gray-300 outline-none border-none" onchange="applyDateFilter()">
                         <button onclick="resetDates()" class="text-xs text-gray-500 hover:text-white ml-1">Limpar</button>
                     </div>
-                    <div class="text-right"><p class="text-sm text-gray-500">Meta</p><p class="text-lg font-bold">50/dia</p></div>
-                    <button onclick="showPage('campaign')" class="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-medium rounded-xl hover:opacity-90">Nova campanha</button>
+                    <div class="text-right">
+                        <p class="text-sm text-gray-500">API</p>
+                        <p class="text-xs text-green-400" id="api-status">Conectando...</p>
+                    </div>
+                    <button onclick="refreshData()" class="px-4 py-3 bg-gray-800 text-white font-medium rounded-xl hover:bg-gray-700 border border-gray-700" title="Atualizar dados">
+                        <i class="fas fa-sync-alt" id="refresh-icon"></i>
+                    </button>
                 </div>
             </div>
         </header>
+
         <div class="p-6">
-            <!-- Dashboard -->
+            <!-- DASHBOARD PAGE -->
             <div id="page-dashboard" class="space-y-8 fade-in">
+                <!-- Stats Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="gradient-border rounded-2xl p-6"><div class="flex items-start justify-between"><div><p class="text-sm text-gray-400 mb-2">Total Prospects</p><p class="text-3xl font-bold" id="total-prospects">...</p><div class="flex items-center gap-1 mt-2"><i class="fas fa-arrow-up text-emerald-500"></i><span class="text-sm font-medium text-emerald-500" id="today-qualified">0 hoje</span></div></div><div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800"><i class="fas fa-users text-purple-400 text-xl"></i></div></div></div>
-                    <div class="gradient-border rounded-2xl p-6"><div class="flex items-start justify-between"><div><p class="text-sm text-gray-400 mb-2">DMs Enviadas</p><p class="text-3xl font-bold" id="dms-sent">...</p><div class="flex items-center gap-1 mt-2"><i class="fas fa-arrow-up text-emerald-500"></i><span class="text-sm font-medium text-emerald-500" id="week-qualified">0 esta semana</span></div></div><div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800"><i class="fas fa-comment text-blue-400 text-xl"></i></div></div></div>
-                    <div class="gradient-border rounded-2xl p-6"><div class="flex items-start justify-between"><div><p class="text-sm text-gray-400 mb-2">Taxa de Resposta</p><p class="text-3xl font-bold" id="reply-rate">...</p><div class="flex items-center gap-1 mt-2"><i class="fas fa-clock text-yellow-500"></i><span class="text-sm font-medium text-yellow-500">Aguardando respostas</span></div></div><div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800"><i class="fas fa-bullseye text-emerald-400 text-xl"></i></div></div></div>
-                    <div class="gradient-border rounded-2xl p-6"><div class="flex items-start justify-between"><div><p class="text-sm text-gray-400 mb-2">Funil</p><p class="text-3xl font-bold" id="funnel-status">...</p><div class="flex items-center gap-1 mt-2"><i class="fas fa-arrow-up text-emerald-500"></i><span class="text-sm font-medium text-emerald-500">Pipeline ativo</span></div></div><div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800"><i class="fas fa-filter text-purple-400 text-xl"></i></div></div></div>
-                </div>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 gradient-border rounded-2xl p-6"><h3 class="text-lg font-bold mb-6">Atividade do Periodo</h3><div style="height:320px"><canvas id="activityChart"></canvas></div></div>
                     <div class="gradient-border rounded-2xl p-6">
-                        <h3 class="text-lg font-bold mb-6">Funil de Conversao</h3>
-                        <div class="space-y-5" id="funnel-container"></div>
-                        <div class="mt-8 pt-6 border-t border-gray-800"><div class="flex items-center justify-between"><div><p class="text-sm text-gray-400">Conversao total</p><p class="text-2xl font-bold" id="conversion-rate">0%</p></div><div class="text-right"><p class="text-sm text-gray-400">Contatados</p><p class="text-2xl font-bold" id="contacted-count">0</p></div></div></div>
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-sm text-gray-400 mb-2">Total Prospects</p>
+                                <p class="text-3xl font-bold" id="total-prospects">...</p>
+                                <div class="flex items-center gap-1 mt-2">
+                                    <i class="fas fa-arrow-up text-emerald-500"></i>
+                                    <span class="text-sm font-medium text-emerald-500" id="today-qualified">0 hoje</span>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800">
+                                <i class="fas fa-users text-purple-400 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gradient-border rounded-2xl p-6">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-sm text-gray-400 mb-2">DMs Enviadas</p>
+                                <p class="text-3xl font-bold" id="dms-sent">...</p>
+                                <div class="flex items-center gap-1 mt-2">
+                                    <i class="fas fa-arrow-up text-emerald-500"></i>
+                                    <span class="text-sm font-medium text-emerald-500" id="week-qualified">0 esta semana</span>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800">
+                                <i class="fas fa-comment text-blue-400 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gradient-border rounded-2xl p-6">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-sm text-gray-400 mb-2">Taxa de Resposta</p>
+                                <p class="text-3xl font-bold" id="reply-rate">...</p>
+                                <div class="flex items-center gap-1 mt-2">
+                                    <i class="fas fa-clock text-yellow-500"></i>
+                                    <span class="text-sm font-medium text-yellow-500">Aguardando respostas</span>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800">
+                                <i class="fas fa-bullseye text-emerald-400 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="gradient-border rounded-2xl p-6">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <p class="text-sm text-gray-400 mb-2">Qualificados</p>
+                                <p class="text-3xl font-bold" id="qualified-count">...</p>
+                                <div class="flex items-center gap-1 mt-2">
+                                    <i class="fas fa-filter text-green-500"></i>
+                                    <span class="text-sm font-medium text-green-500">Prontos para enviar</span>
+                                </div>
+                            </div>
+                            <div class="p-3 rounded-xl bg-gradient-to-br from-gray-900 to-gray-800">
+                                <i class="fas fa-check-circle text-green-400 text-xl"></i>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="gradient-border rounded-2xl p-6"><h3 class="text-lg font-bold mb-6">Atividade Recente</h3><div class="space-y-4" id="recent-activity"></div></div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 gradient-border rounded-2xl p-6">
+                        <h3 class="text-lg font-bold mb-6">Atividade dos Últimos 7 Dias</h3>
+                        <div style="height:320px"><canvas id="activityChart"></canvas></div>
+                    </div>
+                    <div class="gradient-border rounded-2xl p-6">
+                        <h3 class="text-lg font-bold mb-6">Funil de Conversão</h3>
+                        <div class="space-y-5" id="funnel-container"></div>
+                        <div class="mt-8 pt-6 border-t border-gray-800">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-gray-400">Conversão total</p>
+                                    <p class="text-2xl font-bold" id="conversion-rate">0%</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm text-gray-400">Contatados</p>
+                                    <p class="text-2xl font-bold" id="contacted-count">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="gradient-border rounded-2xl p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold">Atividade Recente</h3>
+                        <a href="#" onclick="showPage('activity'); return false;" class="text-sm text-purple-400 hover:text-purple-300">Ver tudo <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                    <div class="space-y-4" id="recent-activity"><p class="text-gray-500">Carregando...</p></div>
+                </div>
             </div>
-            <!-- Prospects -->
+
+            <!-- PROSPECTS PAGE -->
             <div id="page-prospects" class="hidden fade-in">
                 <div class="gradient-border rounded-2xl p-6">
-                    <div class="flex items-center justify-between mb-6"><h3 class="text-lg font-bold">Todos os Prospects</h3><div class="flex gap-3"><button onclick="filterProspects('all')" class="px-4 py-2 rounded-lg bg-gray-800 text-sm" id="filter-all">Todos</button><button onclick="filterProspects('contacted')" class="px-4 py-2 rounded-lg text-gray-400 text-sm" id="filter-contacted">Contactados</button><button onclick="filterProspects('qualified')" class="px-4 py-2 rounded-lg text-gray-400 text-sm" id="filter-qualified">Qualificados</button><button onclick="filterProspects('failed')" class="px-4 py-2 rounded-lg text-gray-400 text-sm" id="filter-failed">Falhados</button><button onclick="exportCSV()" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium"><i class="fas fa-download mr-1"></i>Exportar CSV</button></div></div>
-                    <div class="overflow-x-auto"><table class="w-full text-sm"><thead><tr class="border-b border-gray-800"><th class="text-left py-3 px-4 text-gray-400 font-medium">Usuario</th><th class="text-left py-3 px-4 text-gray-400 font-medium">Nome</th><th class="text-left py-3 px-4 text-gray-400 font-medium">Seguidores</th><th class="text-left py-3 px-4 text-gray-400 font-medium">Nicho</th><th class="text-left py-3 px-4 text-gray-400 font-medium">Fonte</th><th class="text-left py-3 px-4 text-gray-400 font-medium">Status</th><th class="text-left py-3 px-4 text-gray-400 font-medium">Data</th></tr></thead><tbody id="prospects-table"></tbody></table></div>
+                    <!-- Filters & Search -->
+                    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+                        <h3 class="text-lg font-bold">Todos os Prospects</h3>
+                        <div class="flex flex-wrap gap-2 items-center">
+                            <input type="text" id="search-input" placeholder="Buscar nome, nicho..." class="search-input px-4 py-2 bg-gray-800 rounded-xl border border-gray-700 text-sm text-white outline-none focus:border-purple-500 w-48">
+                            <select id="source-filter" onchange="filterProspects()" class="px-3 py-2 bg-gray-800 rounded-xl border border-gray-700 text-sm text-white outline-none">
+                                <option value="">Todas as fontes</option>
+                            </select>
+                            <button onclick="filterProspects('all')" class="px-4 py-2 rounded-lg bg-gray-800 text-sm filter-btn active" data-filter="all">Todos</button>
+                            <button onclick="filterProspects('contacted')" class="px-4 py-2 rounded-lg text-gray-400 text-sm filter-btn" data-filter="contacted">Contactados</button>
+                            <button onclick="filterProspects('qualified')" class="px-4 py-2 rounded-lg text-gray-400 text-sm filter-btn" data-filter="qualified">Qualificados</button>
+                            <button onclick="filterProspects('replied')" class="px-4 py-2 rounded-lg text-gray-400 text-sm filter-btn" data-filter="replied">Respondidos</button>
+                            <button onclick="filterProspects('failed')" class="px-4 py-2 rounded-lg text-gray-400 text-sm filter-btn" data-filter="failed">Falhados</button>
+                            <button onclick="exportCSV()" class="px-4 py-2 rounded-lg bg-gradient-to-r from-purple-600 to-blue-600 text-white text-sm font-medium"><i class="fas fa-download mr-1"></i>Exportar</button>
+                        </div>
+                    </div>
+                    <!-- Table -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b border-gray-800">
+                                    <th class="text-left py-3 px-4 text-gray-400 font-medium" onclick="sortTable('username')">Usuário <i class="fas fa-sort text-xs"></i></th>
+                                    <th class="text-left py-3 px-4 text-gray-400 font-medium" onclick="sortTable('full_name')">Nome <i class="fas fa-sort text-xs"></i></th>
+                                    <th class="text-left py-3 px-4 text-gray-400 font-medium" onclick="sortTable('followers_count')">Seguidores <i class="fas fa-sort text-xs"></i></th>
+                                    <th class="text-left py-3 px-4 text-gray-400 font-medium" onclick="sortTable('niche')">Nicho <i class="fas fa-sort text-xs"></i></th>
+                                    <th class="text-left py-3 px-4 text-gray-400 font-medium">Fonte</th>
+                                    <th class="text-left py-3 px-4 text-gray-400 font-medium" onclick="sortTable('status')">Status <i class="fas fa-sort text-xs"></i></th>
+                                    <th class="text-left py-3 px-4 text-gray-400 font-medium">Data</th>
+                                    <th class="text-left py-3 px-4 text-gray-400 font-medium">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="prospects-table"><tr><td colspan="8" class="py-8 text-center text-gray-500">Carregando prospects...</td></tr></tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-800">
+                        <p class="text-sm text-gray-400" id="pagination-info">Mostrando 0 de 0</p>
+                        <div class="flex gap-2">
+                            <button onclick="changePage(-1)" class="px-4 py-2 rounded-lg bg-gray-800 text-sm text-gray-400 hover:text-white hover:bg-gray-700" id="prev-btn"><i class="fas fa-chevron-left mr-1"></i>Ant</button
+                            <button onclick="changePage(1)" class="px-4 py-2 rounded-lg bg-gray-800 text-sm text-gray-400 hover:text-white hover:bg-gray-700" id="next-btn"><i class="fas fa-chevron-right mr-1"></i>Prox</button>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <!-- Activity -->
-            <div id="page-activity" class="hidden fade-in"><div class="gradient-border rounded-2xl p-6"><h3 class="text-lg font-bold mb-6">Timeline de Atividades</h3><div class="space-y-4" id="activity-timeline"></div></div></div>
-            <!-- Campaign -->
-            <div id="page-campaign" class="hidden fade-in">
-                <div class="gradient-border rounded-2xl p-8 max-w-2xl mx-auto">
-                    <h3 class="text-xl font-bold mb-2">Nova Campanha</h3><p class="text-gray-500 mb-8">Configure uma nova rodada de prospeccao</p>
-                    <div class="space-y-6">
-                        <div><label class="block text-sm text-gray-400 mb-2">Nome da campanha</label><input type="text" placeholder="Ex: Lancadores Kiwify" class="w-full px-4 py-3 bg-gray-800 rounded-xl border border-gray-700 text-white focus:border-purple-500 outline-none"></div>
-                        <div><label class="block text-sm text-gray-400 mb-2">Nichos alvo (separados por virgula)</label><input type="text" placeholder="Ex: lancamentos, infoprodutos" class="w-full px-4 py-3 bg-gray-800 rounded-xl border border-gray-700 text-white focus:border-purple-500 outline-none"></div>
-                        <div><label class="block text-sm text-gray-400 mb-2">Meta de DMs/dia</label><input type="number" value="30" class="w-full px-4 py-3 bg-gray-800 rounded-xl border border-gray-700 text-white focus:border-purple-500 outline-none"></div>
-                        <button class="w-full px-6 py-4 bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold rounded-xl hover:opacity-90 text-lg">Iniciar Campanha</button>
-                    </div>
+
+            <!-- ACTIVITY PAGE -->
+            <div id="page-activity" class="hidden fade-in">
+                <div class="gradient-border rounded-2xl p-6">
+                    <h3 class="text-lg font-bold mb-6">Timeline de Atividades</h3>
+                    <div class="space-y-4" id="activity-timeline"><p class="text-gray-500">Carregando...</p></div>
                 </div>
             </div>
         </div>
     </main>
+
+    <!-- Detail Modal -->
+    <div id="detail-modal" class="hidden fixed inset-0 detail-overlay z-50 flex items-center justify-center p-4">
+        <div class="bg-gray-900 rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-gray-800">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-bold" id="modal-username">@username</h3>
+                    <button onclick="closeModal()" class="text-gray-400 hover:text-white">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <div class="space-y-4">
+                    <div><p class="text-sm text-gray-400">Nome completo</p><p class="font-medium" id="modal-fullname">-</p></div>
+                    <div><p class="text-sm text-gray-400">Nicho</p><p class="font-medium" id="modal-niche">-</p></div>
+                    <div><p class="text-sm text-gray-400">Seguidores</p><p class="font-medium" id="modal-followers">-</p></div>
+                    <div><p class="text-sm text-gray-400">Bio</p><p class="text-sm text-gray-300 bg-gray-800 p-3 rounded-lg" id="modal-bio">-</p></div>
+                    <div><p class="text-sm text-gray-400">Hook usado</p><p class="font-medium text-purple-400" id="modal-hook">-</p></div>
+                    <div><p class="text-sm text-gray-400">Mensagem enviada</p><p class="text-sm bg-gray-800 p-3 rounded-lg text-gray-300 whitespace-pre-wrap" id="modal-message">-</p></div>
+                    <div class="flex items-center gap-3 pt-2">
+                        <span id="modal-status" class="px-3 py-1 rounded-full text-xs font-medium">-</span>
+                        <a id="modal-profile-link" href="#" target="_blank" class="text-sm text-purple-400 hover:underline"><i class="fab fa-instagram mr-1"></i>Ver perfil</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SCRIPT -->
     <script>
-    var API='https://ss-api-two.vercel.app';
-    var allProspects=[];
-    var chartInstance=null;
+    var API = 'https://fully-social-selling-api.vercel.app';
+    var allProspects = [];
+    var allActivities = [];
+    var chartInstance = null;
+    var currentFilter = 'all';
+    var currentPage = 1;
+    var totalPages = 1;
+    var perPage = 20;
+    var searchQuery = '';
+    var sortField = '';
+    var sortAsc = true;
 
-    function showPage(p){
-        document.querySelectorAll('[id^="page-"]').forEach(function(e){e.classList.add('hidden')});
-        document.getElementById('page-'+p).classList.remove('hidden');
-        document.querySelectorAll('.sidebar-link').forEach(function(e){e.classList.remove('active')});
-        var n=document.getElementById('nav-'+p);if(n)n.classList.add('active');
-        var t={dashboard:['Dashboard','Monitoramento em tempo real do pipeline'],prospects:['Prospects','Lista de todos os prospects qualificados'],activity:['Activity','Timeline de acoes do pipeline'],campaign:['Nova Campanha','Configure uma nova rodada de prospeccao']};
-        if(t[p]){document.getElementById('page-title').textContent=t[p][0];document.getElementById('page-subtitle').textContent=t[p][1]}
+    // Auto-refresh every 60s
+    var refreshTimer = setInterval(refreshData, 60000);
+
+    /* ============ NAVIGATION ============ */
+    function showPage(p) {
+        document.querySelectorAll('[id^="page-"]').forEach(function(e) { e.classList.add('hidden') });
+        document.getElementById('page-' + p).classList.remove('hidden');
+        document.querySelectorAll('.sidebar-link').forEach(function(e) { e.classList.remove('active') });
+        var n = document.getElementById('nav-' + p);
+        if (n) n.classList.add('active');
+        var t = {
+            dashboard: ['Dashboard', 'Monitoramento em tempo real do pipeline'],
+            prospects: ['Prospects', 'Lista de todos os prospects qualificados'],
+            activity: ['Atividade', 'Timeline de ações do pipeline']
+        };
+        if (t[p]) {
+            document.getElementById('page-title').textContent = t[p][0];
+            document.getElementById('page-subtitle').textContent = t[p][1];
+        }
+        if (p === 'activity') loadActivities();
+        return false;
     }
 
-    function fmtF(n){if(!n)return'-';var v=parseInt(n);if(v>=1e6)return(v/1e6).toFixed(1)+'M';if(v>=1e3)return(v/1e3).toFixed(1)+'K';return v.toString()}
-
-    function sBadge(s){var c={qualified:'bg-blue-500/20 text-blue-400',contacted:'bg-emerald-500/20 text-emerald-400',replied:'bg-green-500/20 text-green-400',converted:'bg-purple-500/20 text-purple-400',failed:'bg-rose-500/20 text-rose-400'};return'<span class="px-3 py-1 rounded-full text-xs font-medium '+(c[s]||'bg-gray-500/20 text-gray-400')+'">'+s+'</span>'}
-
-    function fmtDate(d){return d?new Date(d).toLocaleDateString('pt-BR'):'-'}
-
-    function makeRow(p){
-        var ic=p.status==='contacted'?'fa-comment':p.status==='failed'?'fa-ban':'fa-user-plus';
-        var co=p.status==='contacted'?'from-blue-600 to-emerald-600':p.status==='failed'?'from-rose-600 to-red-600':'from-purple-600 to-blue-600';
-        var ac=p.status==='contacted'?'DM enviada':p.status==='failed'?'DM bloqueada':'Qualificado';
-        var hk=p.personalization_hook?' - '+p.personalization_hook:'';
-        var hk=p.personalization_hook?'<p class="text-xs text-gray-600 mt-1">'+p.personalization_hook+'</p>':'';
-        var src=p.source_account?'<span class="text-xs text-purple-500/60">via @'+p.source_account+'</span>':'';
-        return'<div class="flex items-center gap-4 p-4 bg-gray-900/50 rounded-xl"><div class="w-10 h-10 rounded-full bg-gradient-to-br '+co+' flex items-center justify-center flex-shrink-0"><i class="fas '+ic+' text-white"></i></div><div class="w-48 flex-shrink-0"><a href="https://instagram.com/'+p.username+'" target="_blank" class="font-medium text-purple-400 hover:underline">@'+p.username+'</a>'+src+hk+'</div><div class="flex-1 text-center">'+sBadge(p.status)+'</div><span class="text-sm text-gray-500 flex-shrink-0">'+fmtDate(p.qualified_at)+'</span></div>'
+    /* ============ FORMATTING ============ */
+    function fmtF(n) {
+        if (!n) return '-';
+        var v = parseInt(n);
+        if (v >= 1e6) return (v / 1e6).toFixed(1) + 'M';
+        if (v >= 1e3) return (v / 1e3).toFixed(1) + 'K';
+        return v.toString();
     }
 
-    function renderRecent(){var s=allProspects.slice().sort(function(a,b){return new Date(b.qualified_at)-new Date(a.qualified_at)});document.getElementById('recent-activity').innerHTML=s.slice(0,5).map(makeRow).join('')}
-
-    function renderTimeline(){var s=allProspects.slice().sort(function(a,b){return new Date(b.qualified_at)-new Date(a.qualified_at)});document.getElementById('activity-timeline').innerHTML=s.slice(0,20).map(makeRow).join('')}
-
-    function renderProspectsFiltered(fp,f){
-        var d=f&&f!=='all'?fp.filter(function(p){return p.status===f}):fp;
-        document.getElementById('prospects-table').innerHTML=d.map(function(p){
-            var src=p.source_account?'<a href="https://instagram.com/'+p.source_account+'" target="_blank" class="text-purple-400 hover:underline text-xs">@'+p.source_account+'</a>':'<span class="text-gray-600 text-xs">-</span>';
-            var score=p.qualification_score?'<span class="text-xs text-gray-500 ml-1">('+p.qualification_score+')</span>':'';
-            return'<tr class="border-b border-gray-800/50 hover:bg-gray-900/50"><td class="py-3 px-4"><a href="https://instagram.com/'+p.username+'" target="_blank" class="text-purple-400 hover:underline">@'+p.username+'</a></td><td class="py-3 px-4 text-gray-300">'+(p.full_name||'-')+'</td><td class="py-3 px-4">'+fmtF(p.followers_count)+'</td><td class="py-3 px-4 text-gray-400 text-xs">'+(p.niche||'-')+score+'</td><td class="py-3 px-4">'+src+'</td><td class="py-3 px-4">'+sBadge(p.status)+'</td><td class="py-3 px-4 text-gray-500 text-xs">'+fmtDate(p.qualified_at)+'</td></tr>'
-        }).join('')
+    function fmtDate(d) {
+        if (!d) return '-';
+        try {
+            return new Date(d).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+        } catch (e) { return '-'; }
     }
 
-    function renderProspects(f){
-        var fp=getFilteredProspects();
-        renderProspectsFiltered(fp,f)
+    function fmtDateTime(d) {
+        if (!d) return '-';
+        try {
+            return new Date(d).toLocaleString('pt-BR');
+        } catch (e) { return '-'; }
     }
 
-    function filterProspects(f){renderProspects(f);document.querySelectorAll('[id^="filter-"]').forEach(function(b){b.className='px-4 py-2 rounded-lg text-gray-400 text-sm'});document.getElementById('filter-'+f).className='px-4 py-2 rounded-lg bg-gray-800 text-sm'}
-
-    function updateStats(st){
-        document.getElementById('total-prospects').textContent=st.total;
-        document.getElementById('prospects-count').textContent=st.total;
-        document.getElementById('today-qualified').textContent=st.today.qualified+' hoje';
-        document.getElementById('dms-sent').textContent=st.funnel.contacted;
-        document.getElementById('week-qualified').textContent=st.week.qualified+' esta semana';
-        document.getElementById('reply-rate').textContent=st.replyRate+'%';
-        document.getElementById('funnel-status').textContent=st.total+' total';
-        document.getElementById('contacted-count').textContent=st.funnel.contacted
+    function sBadge(s) {
+        var c = {
+            new: 'bg-gray-500/20 text-gray-400',
+            qualified: 'bg-blue-500/20 text-blue-400',
+            contacted: 'bg-emerald-500/20 text-emerald-400',
+            replied: 'bg-green-500/20 text-green-400',
+            converted: 'bg-purple-500/20 text-purple-400',
+            failed: 'bg-rose-500/20 text-rose-400'
+        };
+        return '<span class="px-3 py-1 rounded-full text-xs font-medium ' + (c[s] || 'bg-gray-500/20 text-gray-400') + '">' + s + '</span>';
     }
 
-    function renderFunnel(st){
-        var f=st.funnel,mx=Math.max(f.qualified,f.contacted,f.replied,f.converted,f.failed,1);
-        var steps=[{l:'Qualified',v:f.qualified,c:'from-purple-500 to-purple-600'},{l:'Contacted',v:f.contacted,c:'from-blue-500 to-blue-600'},{l:'Replied',v:f.replied,c:'from-emerald-500 to-emerald-600'},{l:'Converted',v:f.converted,c:'from-green-500 to-green-600'},{l:'Failed',v:f.failed,c:'from-rose-500 to-rose-600'}];
-        document.getElementById('funnel-container').innerHTML=steps.map(function(s){var pct=Math.round(s.v/mx*100);return'<div class="flex items-center gap-4"><div class="w-28"><p class="text-sm text-gray-400">'+s.l+'</p><p class="text-lg font-bold">'+s.v+'</p></div><div class="flex-1"><div class="h-3 bg-gray-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r '+s.c+' rounded-full" style="width:'+pct+'%"></div></div></div><div class="w-12 text-right"><p class="text-sm font-medium">'+pct+'%</p></div></div>'}).join('')
+    /* ============ STATS ============ */
+    function computeStats(fp) {
+        var funnel = { qualified: 0, contacted: 0, replied: 0, converted: 0, failed: 0, new: 0 };
+        fp.forEach(function(p) { if (funnel[p.status] !== undefined) funnel[p.status]++ });
+        var now = new Date();
+        var today = now.toISOString().split('T')[0];
+        var ws = new Date(now);
+        ws.setDate(ws.getDate() - ws.getDay());
+        var weekStart = ws.toISOString().split('T')[0];
+
+        var todayQ = fp.filter(function(p) { return p.created_at && p.created_at.startsWith(today) && (p.status === 'qualified' || p.status === 'new') }).length;
+        var todayC = fp.filter(function(p) { return p.contacted_at && p.contacted_at.startsWith(today) }).length;
+        var weekQ = fp.filter(function(p) { return p.created_at && p.created_at.substring(0, 10) >= weekStart }).length;
+
+        var totalContacted = funnel.contacted + funnel.replied + funnel.converted;
+        var replyRate = totalContacted > 0 ? ((funnel.replied + funnel.converted) / totalContacted * 100).toFixed(1) : '0';
+
+        return {
+            total: fp.length,
+            today: { qualified: todayQ, contacted: todayC },
+            week: { qualified: weekQ },
+            funnel: funnel,
+            replyRate: replyRate,
+            contactedTotal: totalContacted
+        };
     }
 
-    function renderChart(){
-        var days=[];
-        for(var i=6;i>=0;i--){var d=new Date();d.setDate(d.getDate()-i);var k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');var dp=allProspects.filter(function(p){return p.qualified_at&&p.qualified_at.startsWith(k)});days.push({l:d.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}),q:dp.filter(function(p){return p.status==='qualified'}).length,c:dp.filter(function(p){return p.status==='contacted'}).length,f:dp.filter(function(p){return p.status==='failed'}).length})}
-        if(chartInstance)chartInstance.destroy();
-        chartInstance=new Chart(document.getElementById('activityChart').getContext('2d'),{type:'bar',data:{labels:days.map(function(d){return d.l}),datasets:[{label:'Qualificados',data:days.map(function(d){return d.q}),backgroundColor:'#8b5cf6',borderRadius:6},{label:'Contactados',data:days.map(function(d){return d.c}),backgroundColor:'#3b82f6',borderRadius:6},{label:'Falhados',data:days.map(function(d){return d.f}),backgroundColor:'#ef4444',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9ca3af'}}},scales:{x:{grid:{color:'#1f2937'},ticks:{color:'#9ca3af'}},y:{grid:{color:'#1f2937'},ticks:{color:'#9ca3af'}}}}})
+    function updateStats(st) {
+        document.getElementById('total-prospects').textContent = st.total;
+        document.getElementById('prospects-count').textContent = st.total;
+        document.getElementById('today-qualified').textContent = st.today.qualified + ' hoje';
+        document.getElementById('dms-sent').textContent = st.contactedTotal;
+        document.getElementById('week-qualified').textContent = st.week.qualified + ' esta semana';
+        document.getElementById('reply-rate').textContent = st.replyRate + '%';
+        document.getElementById('qualified-count').textContent = st.funnel.qualified + (st.funnel.new > 0 ? ' (+' + st.funnel.new + ' novas)' : '');
+        document.getElementById('contacted-count').textContent = st.contactedTotal;
+        document.getElementById('conversion-rate').textContent = st.replyRate + '%';
+
+        // Daily goal progress
+        var goal = 50;
+        var pct = Math.min(st.today.contacted / goal * 100, 100);
+        document.getElementById('daily-progress').style.width = pct + '%';
+        document.getElementById('daily-progress-text').textContent = st.today.contacted + '/50 enviados hoje';
     }
 
-    function getFilteredProspects(){
-        var from=document.getElementById('date-from').value;
-        var to=document.getElementById('date-to').value;
-        if(!from&&!to)return allProspects;
-        return allProspects.filter(function(p){
-            if(!p.qualified_at)return false;
-            var d=p.qualified_at.split('T')[0];
-            if(from&&d<from)return false;
-            if(to&&d>to)return false;
-            return true
-        })
+    function renderFunnel(st) {
+        var f = st.funnel;
+        var mx = Math.max(f.qualified, f.contacted, f.replied, f.converted, f.failed, f.new, 1);
+        var steps = [
+            { l: 'New', v: f.new, c: 'from-gray-500 to-gray-600' },
+            { l: 'Qualified', v: f.qualified, c: 'from-purple-500 to-purple-600' },
+            { l: 'Contacted', v: f.contacted, c: 'from-blue-500 to-blue-600' },
+            { l: 'Replied', v: f.replied, c: 'from-emerald-500 to-emerald-600' },
+            { l: 'Converted', v: f.converted, c: 'from-green-500 to-green-600' },
+            { l: 'Failed', v: f.failed, c: 'from-rose-500 to-rose-600' }
+        ];
+        document.getElementById('funnel-container').innerHTML = steps.map(function(s) {
+            var pct = Math.round(s.v / mx * 100);
+            return '<div class="flex items-center gap-4"><div class="w-28"><p class="text-sm text-gray-400">' + s.l + '</p><p class="text-lg font-bold">' + s.v + '</p></div><div class="flex-1"><div class="h-3 bg-gray-800 rounded-full overflow-hidden"><div class="h-full bg-gradient-to-r ' + s.c + ' rounded-full" style="width:' + pct + '%"></div></div></div><div class="w-12 text-right"><p class="text-sm font-medium">' + pct + '%</p></div></div>';
+        }).join('');
     }
 
-    function applyDateFilter(){
-        var fp=getFilteredProspects();
-        var st=computeStats(fp);
-        updateStats(st);renderFunnel(st);renderChartFiltered(fp);renderRecentFiltered(fp);renderProspectsFiltered(fp);renderTimelineFiltered(fp)
+    /* ============ CHARTS ============ */
+    function renderChart(fp) {
+        var days = [];
+        for (var i = 6; i >= 0; i--) {
+            var d = new Date();
+            d.setDate(d.getDate() - i);
+            var k = d.toISOString().split('T')[0];
+            var dayProspects = fp.filter(function(p) { return p.created_at && p.created_at.substring(0, 10) === k });
+            days.push({
+                l: d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'short' }),
+                q: dayProspects.filter(function(p) { return p.status === 'qualified' || p.status === 'new' }).length,
+                c: dayProspects.filter(function(p) { return p.status === 'contacted' }).length,
+                f: dayProspects.filter(function(p) { return p.status === 'failed' }).length
+            });
+        }
+        if (chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(document.getElementById('activityChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: days.map(function(d) { return d.l }),
+                datasets: [
+                    { label: 'Qualificados', data: days.map(function(d) { return d.q }), backgroundColor: '#8b5cf6', borderRadius: 6 },
+                    { label: 'Contactados', data: days.map(function(d) { return d.c }), backgroundColor: '#3b82f6', borderRadius: 6 },
+                    { label: 'Falhados', data: days.map(function(d) { return d.f }), backgroundColor: '#ef4444', borderRadius: 6 }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#9ca3af' } } },
+                scales: {
+                    x: { grid: { color: '#1f2937' }, ticks: { color: '#9ca3af' } },
+                    y: { grid: { color: '#1f2937' }, ticks: { color: '#9ca3af' } }
+                }
+            }
+        });
     }
 
-    function resetDates(){
-        document.getElementById('date-from').value='';
-        document.getElementById('date-to').value='';
-        applyDateFilter()
+    /* ============ ACTIVITY ============ */
+    function makeActivityRow(a) {
+        var ic = a.action === 'contacted' ? 'fa-comment' : a.action === 'replied' ? 'fa-reply' : a.action === 'failed' ? 'fa-ban' : 'fa-check';
+        var co = a.action === 'contacted' ? 'from-blue-600 to-emerald-600' : a.action === 'replied' ? 'from-green-600 to-emerald-600' : a.action === 'failed' ? 'from-rose-600 to-red-600' : 'from-purple-600 to-blue-600';
+        var label = a.action === 'contacted' ? 'DM Enviada' : a.action === 'replied' ? 'Resposta Recebida' : a.action === 'failed' ? 'Falha no Envio' : 'Qualificado';
+        var detail = a.detail ? '<p class="text-xs text-gray-600 mt-1 truncate max-w-xs">' + a.detail.substring(0, 80) + '</p>' : '';
+        var src = a.username ? '<a href="https://instagram.com/' + a.username + '" target="_blank" class="text-purple-400 hover:underline">@' + a.username + '</a>' : '';
+        return '<div class="flex items-center gap-4 p-4 bg-gray-900/50 rounded-xl"><div class="w-10 h-10 rounded-full bg-gradient-to-br ' + co + ' flex items-center justify-center flex-shrink-0"><i class="fas ' + ic + ' text-white"></i></div><div class="flex-1 min-w-0"><div class="flex items-center gap-2"><span class="font-medium">' + label + '</span>' + (src ? '<span class="text-gray-500">→</span>' + src : '') + '</div>' + detail + '</div><span class="text-sm text-gray-500 flex-shrink-0">' + fmtDateTime(a.created_at) + '</span></div>';
     }
 
-    function computeStats(fp){
-        var funnel={qualified:0,contacted:0,replied:0,converted:0,failed:0};
-        fp.forEach(function(p){if(funnel[p.status]!==undefined)funnel[p.status]++});
-        var now=new Date();var today=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0');
-        var ws=new Date(now);ws.setDate(ws.getDate()-ws.getDay());var weekStart=ws.getFullYear()+'-'+String(ws.getMonth()+1).padStart(2,'0')+'-'+String(ws.getDate()).padStart(2,'0');
-        var todayQ=fp.filter(function(p){return p.qualified_at&&p.qualified_at.startsWith(today)}).length;
-        var weekQ=fp.filter(function(p){return p.qualified_at&&p.qualified_at.split('T')[0]>=weekStart}).length;
-        var contacted=funnel.contacted+funnel.replied+funnel.converted;
-        return{total:fp.length,today:{qualified:todayQ},week:{qualified:weekQ},funnel:funnel,replyRate:contacted>0?((funnel.replied+funnel.converted)/contacted*100).toFixed(1):'0'}
+    function renderRecent(fp) {
+        var sorted = fp.slice().sort(function(a, b) {
+            return new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at);
+        });
+        document.getElementById('recent-activity').innerHTML = sorted.slice(0, 5).map(function(p) {
+            return makeActivityRow({
+                action: p.status === 'contacted' ? 'contacted' : 'qualified',
+                detail: p.personalization_hook || '',
+                username: p.username,
+                created_at: p.updated_at || p.created_at
+            });
+        }).join('');
     }
 
-    function renderChartFiltered(fp){
-        var from=document.getElementById('date-from').value;var to=document.getElementById('date-to').value;
-        function parseLocalDate(s){var p=s.split('-');return new Date(parseInt(p[0]),parseInt(p[1])-1,parseInt(p[2]))}
-        var startDate=from?parseLocalDate(from):new Date();if(!from)startDate.setDate(startDate.getDate()-6);
-        var endDate=to?parseLocalDate(to):new Date();
-        var days=[];var d=new Date(startDate);
-        while(d<=endDate){var k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');var dp=fp.filter(function(p){return p.qualified_at&&p.qualified_at.startsWith(k)});days.push({l:d.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}),q:dp.filter(function(p){return p.status==='qualified'}).length,c:dp.filter(function(p){return p.status==='contacted'}).length,f:dp.filter(function(p){return p.status==='failed'}).length});d.setDate(d.getDate()+1)}
-        if(chartInstance)chartInstance.destroy();
-        chartInstance=new Chart(document.getElementById('activityChart').getContext('2d'),{type:'bar',data:{labels:days.map(function(d){return d.l}),datasets:[{label:'Qualificados',data:days.map(function(d){return d.q}),backgroundColor:'#8b5cf6',borderRadius:6},{label:'Contactados',data:days.map(function(d){return d.c}),backgroundColor:'#3b82f6',borderRadius:6},{label:'Falhados',data:days.map(function(d){return d.f}),backgroundColor:'#ef4444',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#9ca3af'}}},scales:{x:{grid:{color:'#1f2937'},ticks:{color:'#9ca3af'}},y:{grid:{color:'#1f2937'},ticks:{color:'#9ca3af'}}}}})
+    function renderTimeline() {
+        // Merge activities and prospects into one timeline
+        var merged = [];
+
+        allActivities.forEach(function(a) {
+            merged.push({
+                type: 'activity',
+                data: a,
+                ts: a.created_at
+            });
+        });
+
+        // Sort by date desc
+        merged.sort(function(a, b) { return new Date(b.ts) - new Date(a.ts); });
+
+        document.getElementById('activity-timeline').innerHTML = merged.slice(0, 50).map(function(item) {
+            return makeActivityRow(item.data);
+        }).join('');
     }
 
-    function renderRecentFiltered(fp){var s=fp.slice().sort(function(a,b){return new Date(b.qualified_at)-new Date(a.qualified_at)});document.getElementById('recent-activity').innerHTML=s.slice(0,5).map(makeRow).join('')}
+    /* ============ PROSPECTS TABLE ============ */
+    function getFilteredProspects() {
+        var fp = allProspects;
 
-    function renderTimelineFiltered(fp){var s=fp.slice().sort(function(a,b){return new Date(b.qualified_at)-new Date(a.qualified_at)});document.getElementById('activity-timeline').innerHTML=s.slice(0,20).map(makeRow).join('')}
+        // Status filter
+        if (currentFilter && currentFilter !== 'all') {
+            fp = fp.filter(function(p) { return p.status === currentFilter });
+        }
 
-    async function loadDashboard(){
-        try{var sr=await fetch(API+'/api/stats');var pr=await fetch(API+'/api/prospects');var st=await sr.json();var pd=await pr.json();allProspects=pd.prospects||[];updateStats(st);renderFunnel(st);renderChart();renderRecent();renderProspects('all');renderTimeline()}
-        catch(e){console.error('Load error:',e)}
+        // Search
+        if (searchQuery) {
+            var q = searchQuery.toLowerCase();
+            fp = fp.filter(function(p) {
+                return (p.username && p.username.toLowerCase().indexOf(q) !== -1) ||
+                       (p.full_name && p.full_name.toLowerCase().indexOf(q) !== -1) ||
+                       (p.niche && p.niche.toLowerCase().indexOf(q) !== -1) ||
+                       (p.bio_summary && p.bio_summary.toLowerCase().indexOf(q) !== -1);
+            });
+        }
+
+        // Source filter
+        var sourceFilter = document.getElementById('source-filter').value;
+        if (sourceFilter) {
+            fp = fp.filter(function(p) { return p.source_account === sourceFilter });
+        }
+
+        return fp;
     }
 
-    async function refreshData(){
-        try{var sr=await fetch(API+'/api/stats');var pr=await fetch(API+'/api/prospects');var st=await sr.json();var pd=await pr.json();allProspects=pd.prospects||[];
-        var fp=getFilteredProspects();if(fp.length!==allProspects.length){applyDateFilter()}else{updateStats(st);renderFunnel(st);renderRecent();renderProspects('all');renderTimeline()}}
-        catch(e){console.error('Refresh error:',e)}
+    function renderProspectsTable(filtered, page) {
+        var start = (page - 1) * perPage;
+        var end = start + perPage;
+        var pageData = filtered.slice(start, end);
+        totalPages = Math.max(Math.ceil(filtered.length / perPage), 1);
+
+        // Sort
+        if (sortField) {
+            pageData.sort(function(a, b) {
+                var va = a[sortField] || '';
+                var vb = b[sortField] || '';
+                if (typeof va === 'number' && typeof vb === 'number') return sortAsc ? va - vb : vb - va;
+                return sortAsc ? String(va).localeCompare(String(vb)) : String(vb).localeCompare(String(va));
+            });
+        }
+
+        document.getElementById('prospects-table').innerHTML = pageData.map(function(p) {
+            var src = p.source_account ? '<a href="https://instagram.com/' + p.source_account + '" target="_blank" class="text-purple-400 hover:underline text-xs">@' + p.source_account + '</a>' : '<span class="text-gray-600 text-xs">-</span>';
+            return '<tr class="border-b border-gray-800/50 hover:bg-gray-900/50 cursor-pointer" onclick="showDetail(\'' + p.id + '\')">' +
+                '<td class="py-3 px-4"><a href="https://instagram.com/' + p.username + '" target="_blank" class="text-purple-400 hover:underline font-medium">@' + p.username + '</a></td>' +
+                '<td class="py-3 px-4 text-gray-300">' + (p.full_name || '-') + '</td>' +
+                '<td class="py-3 px-4">' + fmtF(p.followers_count) + '</td>' +
+                '<td class="py-3 px-4 text-gray-400 text-xs max-w-xs truncate">' + (p.niche || '-') + '</td>' +
+                '<td class="py-3 px-4">' + src + '</td>' +
+                '<td class="py-3 px-4">' + sBadge(p.status) + '</td>' +
+                '<td class="py-3 px-4 text-gray-500 text-xs">' + fmtDate(p.created_at) + '</td>' +
+                '<td class="py-3 px-4"><button onclick="event.stopPropagation(); showDetail(\'' + p.id + '\')" class="text-purple-400 hover:text-purple-300"><i class="fas fa-eye"></i></button></td>' +
+                '</tr>';
+        }).join('');
+
+        // Pagination info
+        document.getElementById('pagination-info').textContent = 'Mostrando ' + (start + 1) + '-' + Math.min(end, filtered.length) + ' de ' + filtered.length;
+        document.getElementById('prev-btn').disabled = page <= 1;
+        document.getElementById('next-btn').disabled = page >= totalPages;
+        document.getElementById('prev-btn').style.opacity = page <= 1 ? '0.3' : '1';
+        document.getElementById('next-btn').style.opacity = page >= totalPages ? '0.3' : '1';
     }
 
-    function exportCSV(){
-        var fp=getFilteredProspects();
-        var csv='Usuario,Nome,Seguidores,Nicho,Fonte,Status,Score,Data Qualificacao\n';
-        fp.forEach(function(p){csv+='"@'+p.username+'","'+(p.full_name||'')+'","'+(p.followers_count||'')+'","'+(p.niche||'')+'","'+(p.source_account||'')+'","'+p.status+'","'+(p.qualification_score||'')+'","'+fmtDate(p.qualified_at)+'"\n'});
-        var blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
-        var url=URL.createObjectURL(blob);
-        var a=document.createElement('a');a.href=url;a.download='prospects_social_selling.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url)
+    /* ============ FILTER / SEARCH / PAGINATION ============ */
+    function filterProspects(status) {
+        if (status) {
+            currentFilter = status;
+            // Update button styles
+            document.querySelectorAll('.filter-btn').forEach(function(b) {
+                b.className = 'px-4 py-2 rounded-lg text-gray-400 text-sm filter-btn' + (b.getAttribute('data-filter') === status ? ' bg-gray-800' : '');
+            });
+        }
+        currentPage = 1;
+        var fp = getFilteredProspects();
+        renderProspectsTable(fp, currentPage);
     }
 
-    document.addEventListener('DOMContentLoaded',loadDashboard);
-    setInterval(refreshData,30000);
+    function changePage(direction) {
+        var newPage = currentPage + direction;
+        if (newPage >= 1 && newPage <= totalPages) {
+            currentPage = newPage;
+            var fp = getFilteredProspects();
+            renderProspectsTable(fp, currentPage);
+        }
+    }
+
+    function sortTable(field) {
+        if (sortField === field) { sortAsc = !sortAsc; }
+        else { sortField = field; sortAsc = true; }
+        filterProspects();
+    }
+
+    // Search input handler
+    var searchTimeout;
+    document.getElementById('search-input').addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            searchQuery = e.target.value.trim();
+            currentPage = 1;
+            filterProspects();
+        }, 300);
+    });
+
+    /* ============ DETAIL MODAL ============ */
+    function showDetail(id) {
+        var p = allProspects.find(function(x) { return x.id === id });
+        if (!p) return;
+
+        document.getElementById('modal-username').textContent = '@' + p.username;
+        document.getElementById('modal-fullname').textContent = p.full_name || '-';
+        document.getElementById('modal-niche').textContent = p.niche || '-';
+        document.getElementById('modal-followers').textContent = fmtF(p.followers_count);
+        document.getElementById('modal-bio').textContent = (p.bio_summary || 'Não capturada').substring(0, 500);
+        document.getElementById('modal-hook').textContent = p.personalization_hook || '-';
+        document.getElementById('modal-message').textContent = p.dm_message || 'Nenhuma mensagem enviada ainda';
+        document.getElementById('modal-status').outerHTML = sBadge(p.status);
+        document.getElementById('modal-profile-link').href = 'https://instagram.com/' + p.username;
+
+        document.getElementById('detail-modal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+        document.getElementById('detail-modal').classList.add('hidden');
+    }
+
+    // Close modal on overlay click
+    document.getElementById('detail-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeModal();
+    });
+
+    /* ============ EXPORT CSV ============ */
+    function exportCSV() {
+        var fp = getFilteredProspects();
+        var csv = 'Usuario,Nome,Seguidores,Nicho,Fonte,Status,Score,DM Enviada,Data\n';
+        fp.forEach(function(p) {
+            csv += '"' + p.username + '","' + (p.full_name || '') + '","' + (p.followers_count || '') + '","' + (p.niche || '') + '","' + (p.source_account || '') + '","' + p.status + '","' + (p.qualification_score || '') + '","' + (p.dm_message || '').replace(/"/g, '""') + '","' + fmtDate(p.created_at) + '"\n';
+        });
+        var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a'); a.href = url;
+        a.download = 'prospects_full_funnel_' + new Date().toISOString().split('T')[0] + '.csv';
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    /* ============ DATA LOADING ============ */
+    async function loadDashboard() {
+        try {
+            document.getElementById('api-status').textContent = '';
+            document.getElementById('api-status').className = 'text-xs text-green-400';
+            document.getElementById('api-status').textContent = 'Online ✓';
+
+            var sr = await fetch(API + '/api/stats');
+            var pr = await fetch(API + '/api/prospects?limit=200');
+            var ar = await fetch(API + '/api/activities?limit=50');
+
+            var st = await sr.json();
+            var pd = await pr.json();
+            var ad = await ar.json();
+
+            allProspects = pd.prospects || [];
+            allActivities = ad.activities || [];
+
+            updateStats(st);
+            renderFunnel(st);
+            renderChart(allProspects);
+            renderRecent(allProspects);
+            renderProspectsTable(allProspects, 1);
+            renderTimeline();
+
+            // Populate source filter
+            var sources = {};
+            allProspects.forEach(function(p) {
+                if (p.source_account) sources[p.source_account] = (sources[p.source_account] || 0) + 1;
+            });
+            var sel = document.getElementById('source-filter');
+            var currentVal = sel.value;
+            sel.innerHTML = '<option value="">Todas as fontes</option>' +
+                Object.keys(sources).sort().map(function(s) {
+                    return '<option value="' + s + '">' + s + ' (' + sources[s] + ')</option>';
+                }).join('');
+            sel.value = currentVal;
+
+            // Update prospect count badge
+            document.getElementById('prospects-count').textContent = st.total;
+
+        } catch (e) {
+            console.error('Load error:', e);
+            document.getElementById('api-status').textContent = 'Offline ✗';
+            document.getElementById('api-status').className = 'text-xs text-red-400';
+        }
+    }
+
+    async function refreshData() {
+        var icon = document.getElementById('refresh-icon');
+        if (icon) icon.classList.add('fa-spin');
+        try {
+            await loadDashboard();
+        } catch (e) {
+            console.error('Refresh error:', e);
+        }
+        if (icon) {
+            setTimeout(function() { icon.classList.remove('fa-spin') }, 500);
+        }
+    }
+
+    async function loadActivities() {
+        if (allActivities.length > 0) {
+            renderTimeline();
+            return;
+        }
+        try {
+            var ar = await fetch(API + '/api/activities?limit=100');
+            var ad = await ar.json();
+            allActivities = ad.activities || [];
+            renderTimeline();
+        } catch (e) {
+            console.error('Load activities error:', e);
+        }
+    }
+
+    /* ============ INIT ============ */
+    document.addEventListener('DOMContentLoaded', function() {
+        loadDashboard();
+    });
     </script>
 </body>
 </html>
